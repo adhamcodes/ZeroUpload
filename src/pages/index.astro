@@ -1,0 +1,136 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { CONVERSIONS, CATEGORIES } from "../data/conversions";
+
+const title =
+  "ZeroUpload — Convert Files 100% in Your Browser. Zero Uploads, Zero Limits.";
+const description =
+  "Convert images privately and instantly. Files never leave your device — no upload, no signup, no limits. Works even offline. The private file converter.";
+
+const featured = CONVERSIONS.slice(0, 12);
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "ZeroUpload",
+    url: Astro.site?.href,
+    description,
+  },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <!-- HERO -->
+  <section class="mx-auto max-w-3xl px-6 pt-20 pb-12 text-center sm:pt-28">
+    <span
+      class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      100% private · nothing is ever uploaded
+    </span>
+
+    <h1 class="mt-6 font-display text-5xl leading-[1.05] tracking-tight sm:text-6xl">
+      Convert files without<br /> uploading a thing.
+    </h1>
+
+    <p class="mx-auto mt-6 max-w-xl text-lg text-stone">
+      ZeroUpload converts your files entirely inside your browser. No upload, no
+      signup, no limits — and it even works offline. Your files never leave your
+      device.
+    </p>
+
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a
+        href={`/${CATEGORIES.image.slug}`}
+        class="rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
+      >
+        Convert an image
+      </a>
+      <a
+        href="#how"
+        class="rounded-full border border-mist bg-paper px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-accent/60"
+      >
+        How it works
+      </a>
+    </div>
+  </section>
+
+  <!-- POPULAR CONVERSIONS -->
+  <section class="mx-auto max-w-5xl px-6 py-12">
+    <h2 class="font-display text-2xl">Popular conversions</h2>
+    <p class="mt-1 text-stone">Pick a conversion — every one runs on your device.</p>
+    <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {
+        featured.map((c) => (
+          <a
+            href={`/${c.slug}`}
+            class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+          >
+            <p class="font-display text-lg text-ink">
+              {c.from.name}{" "}
+              <span class="text-stone transition-colors group-hover:text-accent">
+                &rarr;
+              </span>{" "}
+              {c.to.name}
+            </p>
+            <p class="mt-1 text-xs text-stone">Convert {c.from.name} to {c.to.name}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="mx-auto max-w-5xl px-6 py-16">
+    <h2 class="font-display text-3xl">Why ZeroUpload feels like magic</h2>
+    <div class="mt-10 grid gap-8 sm:grid-cols-3">
+      {
+        [
+          {
+            t: "Nothing is uploaded",
+            d: "Conversion runs in your browser using WebAssembly and Canvas. Your files stay on your device — always.",
+          },
+          {
+            t: "Instant & unlimited",
+            d: "No queues, no '2 free conversions' walls. Because there is no server doing the work, there is nothing to limit.",
+          },
+          {
+            t: "Works offline",
+            d: "Once the page loads you can disconnect the internet and it still converts. Try it — that's the proof it's private.",
+          },
+        ].map((f) => (
+          <div>
+            <div class="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+            <h3 class="mt-4 font-display text-xl">{f.t}</h3>
+            <p class="mt-2 text-stone">{f.d}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- PRIVACY STATEMENT -->
+  <section id="privacy" class="mx-auto max-w-3xl px-6 py-16 text-center">
+    <h2 class="font-display text-3xl">Your files are nobody's business.</h2>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Other converters upload your private photos and documents to their
+      servers. We think that's absurd. ZeroUpload was built on one rule: your
+      files never leave your device. No exceptions, no fine print.
+    </p>
+  </section>
+</Layout>

@@ -1,0 +1,174 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Converter from "../components/Converter.tsx";
+import {
+  CONVERSIONS,
+  relatedConversions,
+  pageTitle,
+  metaDescription,
+  h1,
+  faq,
+} from "../data/conversions";
+
+/**
+ * THE CARPET-BOMB.
+ * One template -> one static, SEO-optimised page per conversion pair.
+ * Add formats/flags in src/data/conversions.ts and these multiply.
+ */
+export function getStaticPaths() {
+  return CONVERSIONS.map((c) => ({
+    params: { from: c.from.id, to: c.to.id },
+    props: { conversion: c },
+  }));
+}
+
+const { conversion } = Astro.props;
+const c = conversion;
+const related = relatedConversions(c.slug);
+const faqs = faq(c);
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+const steps = [
+  `Drop your ${c.from.name} file into the box (or click to select it).`,
+  `ZeroUpload converts it to ${c.to.name} instantly, right inside your browser.`,
+  `Download your new ${c.to.name} file. Nothing was ever uploaded.`,
+];
+
+// Structured data — wins rich snippets in Google.
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: h1(c),
+    description: metaDescription(c),
+    step: steps.map((s, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      text: s,
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: `${c.from.name} to ${c.to.name} Converter`,
+    url: canonical,
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Any (browser-based)",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+];
+
+const accept = `.${c.from.id},${c.from.mime}`;
+---
+
+<Layout
+  title={pageTitle(c)}
+  description={metaDescription(c)}
+  jsonLd={jsonLd}
+>
+  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
+    <p class="text-sm font-medium uppercase tracking-wider text-accent">
+      {c.from.name} &rarr; {c.to.name}
+    </p>
+    <h1 class="mt-3 font-display text-4xl tracking-tight sm:text-5xl">
+      {h1(c)}
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Free, instant and 100% private. Your {c.from.name} file is converted on your
+      own device and never uploaded anywhere.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-2xl px-6 pb-8">
+    <Converter
+      client:load
+      to={c.to.id}
+      fromName={c.from.name}
+      toName={c.to.name}
+      accept={accept}
+    />
+  </section>
+
+  <!-- How it works -->
+  <section class="mx-auto max-w-2xl px-6 py-12">
+    <h2 class="font-display text-2xl">
+      How to convert {c.from.name} to {c.to.name}
+    </h2>
+    <ol class="mt-6 space-y-4">
+      {
+        steps.map((s, i) => (
+          <li class="flex gap-4">
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-accent">
+              {i + 1}
+            </span>
+            <p class="pt-0.5 text-stone">{s}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <!-- About the formats -->
+  <section class="mx-auto max-w-2xl px-6 py-8">
+    <div class="grid gap-6 sm:grid-cols-2">
+      <div class="rounded-[var(--radius-xl)] border border-mist bg-paper p-6">
+        <h3 class="font-display text-lg">{c.from.fullName} ({c.from.name})</h3>
+        <p class="mt-2 text-sm text-stone">
+          {c.from.name} is {c.from.blurb}.
+        </p>
+      </div>
+      <div class="rounded-[var(--radius-xl)] border border-mist bg-paper p-6">
+        <h3 class="font-display text-lg">{c.to.fullName} ({c.to.name})</h3>
+        <p class="mt-2 text-sm text-stone">
+          {c.to.name} is {c.to.blurb}.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-2xl px-6 py-12">
+    <h2 class="font-display text-2xl">Frequently asked questions</h2>
+    <div class="mt-6 divide-y divide-mist">
+      {
+        faqs.map((f) => (
+          <details class="group py-4">
+            <summary class="flex cursor-pointer items-center justify-between text-base font-medium text-ink marker:content-['']">
+              {f.q}
+              <span class="text-stone transition-transform group-open:rotate-45">
+                +
+              </span>
+            </summary>
+            <p class="mt-3 text-stone">{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Related conversions (internal linking / SEO clustering) -->
+  <section class="mx-auto max-w-2xl px-6 py-8">
+    <h2 class="font-display text-2xl">Related conversions</h2>
+    <div class="mt-6 flex flex-wrap gap-3">
+      {
+        related.map((r) => (
+          <a
+            href={`/${r.slug}`}
+            class="rounded-full border border-mist bg-paper px-4 py-2 text-sm text-stone transition-colors hover:border-accent/60 hover:text-ink"
+          >
+            {r.from.name} to {r.to.name}
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,54 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { CONVERSIONS, CATEGORIES } from "../data/conversions";
+
+const cat = CATEGORIES.image;
+const imageConversions = CONVERSIONS.filter((c) => c.from.category === "image");
+
+const title = `Free Image Converter — Convert Images In Your Browser | ZeroUpload`;
+const description =
+  "Convert PNG, JPG, WEBP, SVG, GIF and BMP images instantly in your browser. 100% private — no upload, no signup, no limits. Files never leave your device.";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: title,
+    description,
+  },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
+    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">
+      {cat.title}
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-6 py-8">
+    <h2 class="font-display text-2xl">All image conversions</h2>
+    <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {
+        imageConversions.map((c) => (
+          <a
+            href={`/${c.slug}`}
+            class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+          >
+            <p class="font-display text-lg text-ink">
+              {c.from.name}{" "}
+              <span class="text-stone transition-colors group-hover:text-accent">
+                &rarr;
+              </span>{" "}
+              {c.to.name}
+            </p>
+            <p class="mt-1 text-xs text-stone">
+              Convert {c.from.name} to {c.to.name}
+            </p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Layout>
