@@ -1,0 +1,105 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export async function getStaticPaths() {
+  const articles = await getCollection("articles");
+  return articles.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: entry.data.title,
+    description: entry.data.description,
+    datePublished: entry.data.publishDate.toISOString(),
+    author: { "@type": "Organization", name: "ZeroUpload" },
+  },
+];
+---
+
+<Layout title={`${entry.data.title} | ZeroUpload`} description={entry.data.description} jsonLd={jsonLd}>
+  <article class="mx-auto max-w-2xl px-6 pt-16 pb-20">
+    <a href="/articles" class="text-sm text-stone underline-offset-4 hover:underline">
+      &larr; All articles
+    </a>
+    <h1 class="mt-6 font-display text-4xl leading-tight tracking-tight sm:text-5xl">
+      {entry.data.title}
+    </h1>
+    <p class="mt-4 text-xs uppercase tracking-wider text-stone/70">
+      {
+        entry.data.publishDate.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      }
+    </p>
+
+    <div class="article-body mt-8 text-stone leading-relaxed">
+      <Content />
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-body :global(h2) {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--color-ink);
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .article-body :global(p) {
+    margin-top: 1rem;
+  }
+  .article-body :global(ul),
+  .article-body :global(ol) {
+    margin-top: 1rem;
+    padding-left: 1.5rem;
+    list-style: disc;
+  }
+  .article-body :global(ol) {
+    list-style: decimal;
+  }
+  .article-body :global(li) {
+    margin-top: 0.35rem;
+  }
+  .article-body :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .article-body :global(strong) {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+  .article-body :global(blockquote) {
+    border-left: 3px solid var(--color-mist);
+    padding-left: 1rem;
+    margin-top: 1.25rem;
+    font-style: italic;
+  }
+  .article-body :global(table) {
+    width: 100%;
+    margin-top: 1.25rem;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .article-body :global(th),
+  .article-body :global(td) {
+    border: 1px solid var(--color-mist);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .article-body :global(th) {
+    color: var(--color-ink);
+  }
+</style>

@@ -27,6 +27,21 @@ Become the default, private, free file converter that ranks on Google for every
 - [x] Converter island, homepage, image hub, sitemap, robots.txt, JSON-LD.
 - [x] 24 working image-conversion pages generated at build.
 
+## Anti-Fragile patches ✅ DONE (applied in the initial build)
+
+Hardening against the three money-site killers:
+
+- [x] **Mobile RAM management** — device detection, per-file/per-batch size
+      limits on low-memory devices, strictly sequential processing with GC
+      breathing room, and an "Optimizing memory…" UI state with progress.
+- [x] **Anti-thin-content** — unique per-format editorial data (whatIs/useCases/
+      pros/cons) woven into each page, plus hand-written Markdown injection for
+      top pages (`src/data/customCopy.ts`, rendered with `marked`).
+- [x] **AdSense authority** — `/about`, `/privacy`, `/terms` pages and an
+      `/articles` blog (Astro content collections) with 3 seed articles.
+- [ ] Expand `customCopy.ts` to all top-50 keywords (ongoing as we add formats).
+- [ ] Publish 5–10 total articles (3 done; write more over time).
+
 ## Phase 1 — Image domination (NEXT)
 
 Goal: own the highest-volume image keywords.

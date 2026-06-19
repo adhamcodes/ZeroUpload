@@ -1,0 +1,73 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Privacy Policy | ZeroUpload";
+const description =
+  "ZeroUpload's privacy policy. Your files are converted entirely in your browser and are never uploaded, stored, or seen by us.";
+const updated = "June 2026";
+---
+
+<Layout title={title} description={description}>
+  <article class="mx-auto max-w-2xl px-6 pt-16 pb-20">
+    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">Privacy Policy</h1>
+    <p class="mt-3 text-sm text-stone">Last updated: {updated}</p>
+
+    <div class="article-body mt-8 space-y-4 text-stone leading-relaxed">
+      <h2 class="font-display text-2xl text-ink">The short version</h2>
+      <p>
+        <strong>We never receive your files.</strong> All conversions happen
+        locally in your browser. Your files are not uploaded to, stored on, or
+        processed by any ZeroUpload server — because there is no such server
+        involved in the conversion.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Your files</h2>
+      <p>
+        When you convert a file, it is read into your browser's memory, converted
+        on your device, and offered back to you as a download. It never travels
+        across the internet. When you close or refresh the page, that data is
+        gone from memory. We have no copy and never did.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Information we do collect</h2>
+      <p>
+        To run the website we may use privacy-respecting analytics to understand
+        aggregate, anonymous usage (such as which pages are visited). This never
+        includes the contents of your files. If we display advertising, ad
+        partners may use cookies as described in their own policies; you can
+        control cookies through your browser settings.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Cookies</h2>
+      <p>
+        The core converter works without requiring cookies. Any cookies used are
+        limited to basic site functionality and, where applicable, advertising
+        partners.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Children's privacy</h2>
+      <p>
+        ZeroUpload is a general-purpose utility and is not directed at children
+        under 13.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Changes</h2>
+      <p>
+        We may update this policy from time to time. Material changes will be
+        reflected by the "last updated" date above.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Contact</h2>
+      <p>
+        Questions about privacy? Email <strong>privacy@zeroupload.app</strong>.
+      </p>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-body :global(strong) {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+</style>

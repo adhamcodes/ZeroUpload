@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { convertImage, type ConvertResult } from "../lib/convertImage";
 
 interface Props {
@@ -20,10 +20,65 @@ interface DoneItem {
   sourceName: string;
 }
 
+/* ---------------- Anti-fragile memory management ----------------
+   Worst case we are preventing: a mid-range phone converting several
+   heavy images at once, blowing the tab's RAM budget and crashing.
+   Strategy: detect device class, cap batch size/bytes, process strictly
+   sequentially with GC breathing room, and tell the user what's happening. */
+
+interface DeviceProfile {
+  isMobile: boolean;
+  lowMemory: boolean;
+  maxFiles: number;
+  maxFileBytes: number;
+  maxBatchBytes: number;
+}
+
+function detectDevice(): DeviceProfile {
+  if (typeof navigator === "undefined") {
+    return {
+      isMobile: false,
+      lowMemory: false,
+      maxFiles: 50,
+      maxFileBytes: 100 * 1024 * 1024,
+      maxBatchBytes: 400 * 1024 * 1024,
+    };
+  }
+  const ua = navigator.userAgent || "";
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua);
+  // navigator.deviceMemory is in GB (Chrome/Android). Treat <=4GB as low.
+  const deviceMemory = (navigator as unknown as { deviceMemory?: number })
+    .deviceMemory;
+  const lowMemory = isMobile || (typeof deviceMemory === "number" && deviceMemory <= 4);
+
+  if (lowMemory) {
+    return {
+      isMobile,
+      lowMemory: true,
+      maxFiles: 5,
+      maxFileBytes: 25 * 1024 * 1024, // 25 MB per file on phones
+      maxBatchBytes: 60 * 1024 * 1024, // 60 MB total per batch
+    };
+  }
+  return {
+    isMobile,
+    lowMemory: false,
+    maxFiles: 50,
+    maxFileBytes: 100 * 1024 * 1024,
+    maxBatchBytes: 400 * 1024 * 1024,
+  };
+}
+
 function prettyBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Yield to the event loop so the browser can paint and reclaim memory
+ *  between heavy conversions — this is what prevents the RAM spike. */
+function breathe(ms = 60): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export default function Converter({ to, fromName, toName, accept }: Props) {
@@ -31,23 +86,77 @@ export default function Converter({ to, fromName, toName, accept }: Props) {
   const [dragging, setDragging] = useState(false);
   const [items, setItems] = useState<DoneItem[]>([]);
   const [error, setError] = useState<string>("");
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
+  const [optimizing, setOptimizing] = useState(false);
+  const [device, setDevice] = useState<DeviceProfile | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Detect device on the client only (avoids SSR mismatch).
+  useEffect(() => {
+    setDevice(detectDevice());
+  }, []);
+
+  const validateBatch = useCallback(
+    (files: File[], d: DeviceProfile): string | null => {
+      if (files.length > d.maxFiles) {
+        return `For a smooth experience on this device, please convert up to ${d.maxFiles} files at a time. You selected ${files.length}.`;
+      }
+      const oversize = files.find((f) => f.size > d.maxFileBytes);
+      if (oversize) {
+        return `"${oversize.name}" is ${prettyBytes(oversize.size)}. On this device the per-file limit is ${prettyBytes(
+          d.maxFileBytes,
+        )} to keep your browser stable.`;
+      }
+      const total = files.reduce((sum, f) => sum + f.size, 0);
+      if (total > d.maxBatchBytes) {
+        return `That batch is ${prettyBytes(total)}. Please keep batches under ${prettyBytes(
+          d.maxBatchBytes,
+        )} on this device, or convert them in smaller groups.`;
+      }
+      return null;
+    },
+    [],
+  );
 
   const handleFiles = useCallback(
     async (fileList: FileList | null) => {
       if (!fileList || fileList.length === 0) return;
+      const d = device ?? detectDevice();
       const files = Array.from(fileList);
+
+      const validationError = validateBatch(files, d);
+      if (validationError) {
+        setError(validationError);
+        setStatus("error");
+        return;
+      }
+
       setStatus("working");
       setError("");
+      setProgress({ done: 0, total: files.length });
       const done: DoneItem[] = [];
+
       try {
-        for (const file of files) {
+        // STRICTLY SEQUENTIAL — never hold two decoded bitmaps at once.
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
           const result = await convertImage(file, to);
           done.push({
             result,
             url: URL.createObjectURL(result.blob),
             sourceName: file.name,
           });
+          setProgress({ done: i + 1, total: files.length });
+
+          // On low-memory devices, pause between files so the browser can
+          // garbage-collect the previous canvas/bitmap before the next one.
+          if (d.lowMemory && i < files.length - 1) {
+            setOptimizing(true);
+            await breathe(120);
+            setOptimizing(false);
+          }
         }
         setItems((prev) => [...done, ...prev]);
         setStatus("done");
@@ -56,9 +165,12 @@ export default function Converter({ to, fromName, toName, accept }: Props) {
           e instanceof Error ? e.message : "Something went wrong converting that file.",
         );
         setStatus("error");
+      } finally {
+        setProgress(null);
+        setOptimizing(false);
       }
     },
-    [to],
+    [to, device, validateBatch],
   );
 
   const onDrop = useCallback(
@@ -70,6 +182,14 @@ export default function Converter({ to, fromName, toName, accept }: Props) {
     [handleFiles],
   );
 
+  // Clean up object URLs when unmounting.
+  useEffect(() => {
+    return () => {
+      items.forEach((i) => URL.revokeObjectURL(i.url));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const reset = () => {
     items.forEach((i) => URL.revokeObjectURL(i.url));
     setItems([]);
@@ -78,19 +198,24 @@ export default function Converter({ to, fromName, toName, accept }: Props) {
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  const working = status === "working";
+
   return (
     <div className="w-full">
       {/* Drop zone */}
       <div
         role="button"
         tabIndex={0}
-        onClick={() => inputRef.current?.click()}
+        aria-disabled={working}
+        onClick={() => !working && inputRef.current?.click()}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+          if (!working && (e.key === "Enter" || e.key === " ")) {
+            inputRef.current?.click();
+          }
         }}
         onDragOver={(e) => {
           e.preventDefault();
-          setDragging(true);
+          if (!working) setDragging(true);
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
@@ -100,6 +225,7 @@ export default function Converter({ to, fromName, toName, accept }: Props) {
           dragging
             ? "border-accent bg-accent-soft"
             : "border-mist bg-paper hover:border-accent/60",
+          working ? "cursor-progress" : "",
         ].join(" ")}
       >
         <input
@@ -111,10 +237,17 @@ export default function Converter({ to, fromName, toName, accept }: Props) {
           onChange={(e) => handleFiles(e.target.files)}
         />
 
-        {status === "working" ? (
+        {working ? (
           <div className="flex flex-col items-center gap-3">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-mist border-t-accent" />
-            <p className="text-sm text-stone">Converting on your device…</p>
+            <p className="text-sm font-medium text-ink">
+              {optimizing ? "Optimizing memory…" : "Converting on your device…"}
+            </p>
+            {progress && (
+              <p className="text-xs text-stone">
+                {progress.done} of {progress.total} done
+              </p>
+            )}
           </div>
         ) : (
           <>
@@ -141,6 +274,12 @@ export default function Converter({ to, fromName, toName, accept }: Props) {
             <p className="mt-1 text-sm text-stone">
               or click to choose — converted to {toName} instantly, on your device
             </p>
+            {device?.lowMemory && (
+              <p className="mt-3 text-xs text-stone/80">
+                Optimised for this device: up to {device.maxFiles} files,{" "}
+                {prettyBytes(device.maxFileBytes)} each.
+              </p>
+            )}
           </>
         )}
       </div>

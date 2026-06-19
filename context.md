@@ -3,6 +3,24 @@
 > Continuity file. Whenever we stop, the latest state lives here so we can pick
 > up instantly. Newest notes at the top.
 
+## Anti-Fragile patches (applied in the initial build)
+
+Three failure modes were identified and patched in code:
+
+1. **Mobile RAM crash** → `src/components/Converter.tsx` now detects device
+   class (`navigator.userAgent` + `navigator.deviceMemory`), enforces per-file
+   and per-batch size limits on low-memory devices, processes files strictly
+   sequentially with GC "breathing room" between them, and shows an
+   "Optimizing memory…" state plus progress. Greatly reduces (not 0%, honestly)
+   the chance of a tab crash.
+2. **Thin-content penalty** → each `Format` in `conversions.ts` carries unique
+   editorial fields (`whatIs`/`useCases`/`pros`/`cons`); the template assembles
+   genuinely different copy per pair, and `src/data/customCopy.ts` injects
+   hand-written Markdown (via `marked`) for top pages.
+3. **AdSense rejection** → added `/about`, `/privacy`, `/terms`, and an
+   `/articles` blog (Astro content collections, 3 seed articles) for authority
+   signals. Footer links them all.
+
 ## Current state (initial build)
 
 - **Phase 0 (Foundation) is COMPLETE.** The app builds cleanly and generates

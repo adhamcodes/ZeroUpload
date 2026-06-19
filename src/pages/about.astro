@@ -1,0 +1,60 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "About ZeroUpload — The Converter That Never Uploads";
+const description =
+  "ZeroUpload is a file converter that runs 100% in your browser. Learn who we are, why we built a privacy-first converter, and how it works.";
+---
+
+<Layout title={title} description={description}>
+  <article class="mx-auto max-w-2xl px-6 pt-16 pb-20">
+    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">About ZeroUpload</h1>
+
+    <div class="article-body mt-8 space-y-4 text-stone leading-relaxed">
+      <p>
+        ZeroUpload is a free file converter with one defining principle:
+        <strong>your files never leave your device.</strong> Every conversion
+        happens locally, inside your own web browser, using technologies like the
+        Canvas API and WebAssembly.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Why we built it</h2>
+      <p>
+        Almost every "free online converter" quietly uploads your files to a
+        remote server to do its work. For private documents and personal photos,
+        that is an unnecessary risk. We believed there was a better way — and
+        modern browsers are now powerful enough to convert files without sending
+        them anywhere.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">How it works</h2>
+      <p>
+        When you drop a file into ZeroUpload, it is read from your device into
+        memory, transformed by an in-browser engine, and returned to you as a
+        download. Nothing is transmitted across the internet. You can prove this
+        yourself: start a conversion, disconnect your internet, and watch it keep
+        working.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">What we offer</h2>
+      <p>
+        Free, unlimited, private file conversion with no account required. Because
+        the work runs on your device, there are no server costs — and therefore no
+        paywalls, no queues, and no limits beyond what your own device can handle.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Get in touch</h2>
+      <p>
+        Questions, feedback or a format you'd like us to support? Reach us at
+        <strong>hello@zeroupload.app</strong>.
+      </p>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-body :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+</style>
