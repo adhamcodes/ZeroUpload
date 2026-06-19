@@ -1,0 +1,90 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Terms of Service | ZeroUpload";
+const description =
+  "The terms of service for using ZeroUpload, the free in-browser file converter.";
+const updated = "June 2026";
+---
+
+<Layout title={title} description={description}>
+  <article class="mx-auto max-w-2xl px-6 pt-16 pb-20">
+    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">Terms of Service</h1>
+    <p class="mt-3 text-sm text-stone">Last updated: {updated}</p>
+
+    <div class="article-body mt-8 space-y-4 text-stone leading-relaxed">
+      <h2 class="font-display text-2xl text-ink">1. Acceptance of terms</h2>
+      <p>
+        By accessing or using ZeroUpload (the "Service"), you agree to these Terms
+        of Service. If you do not agree, please do not use the Service.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">2. The Service</h2>
+      <p>
+        ZeroUpload provides free, browser-based file conversion tools. All
+        conversions are performed locally on your own device. The Service is
+        provided free of charge for personal and commercial use.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">3. Acceptable use</h2>
+      <p>
+        You agree to use ZeroUpload only with files you have the legal right to
+        convert, and not for any unlawful purpose. You are solely responsible for
+        the files you process and the results you produce. You agree not to misuse
+        the Service or attempt to disrupt its operation.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">4. No warranty</h2>
+      <p>
+        THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF
+        ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+        WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+        NON-INFRINGEMENT. While we work hard to provide accurate, reliable
+        conversions, we do not warrant that every conversion will be error-free,
+        lossless, or suitable for your particular purpose.
+        <strong>Always keep a copy of your original files.</strong>
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">5. Limitation of liability</h2>
+      <p>
+        TO THE MAXIMUM EXTENT PERMITTED BY LAW, ZEROUPLOAD AND ITS OPERATORS SHALL
+        NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR
+        PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM
+        YOUR USE OF (OR INABILITY TO USE) THE SERVICE. Because your files are
+        processed only on your own device and are never uploaded to us, we never
+        hold or control them.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">6. Intellectual property</h2>
+      <p>
+        The ZeroUpload name, branding, and site content are the property of their
+        respective owners. The Service is built on open-source software, used in
+        accordance with its respective licenses.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">7. Changes to these terms</h2>
+      <p>
+        We may revise these Terms from time to time. Continued use of the Service
+        after changes take effect constitutes acceptance of the revised Terms.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">8. Governing law</h2>
+      <p>
+        These Terms are governed by the laws of Dhaka, Bangladesh, without regard
+        to its conflict-of-law provisions.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">9. Contact</h2>
+      <p>
+        Questions about these Terms? Email <strong>support@zeroupload.app</strong>.
+      </p>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-body :global(strong) {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+</style>

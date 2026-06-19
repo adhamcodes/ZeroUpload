@@ -1,0 +1,48 @@
+---
+import { CATEGORIES } from "../data/conversions";
+---
+
+<header class="border-b border-mist/70">
+  <div
+    class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5"
+  >
+    <a href="/" class="flex items-center gap-2">
+      <span
+        class="flex h-7 w-7 items-center justify-center rounded-lg bg-ink text-canvas"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 20V8" />
+          <path d="m6 14 6 6 6-6" />
+          <path d="M4 4h16" />
+        </svg>
+      </span>
+      <span class="font-display text-lg font-medium tracking-tight">
+        ZeroUpload
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-7 text-sm text-stone sm:flex">
+      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.image.slug}`}>
+        Image
+      </a>
+      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.document.slug}`}>
+        PDF
+      </a>
+      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.audio.slug}`}>
+        Audio
+      </a>
+      <a class="transition-colors hover:text-ink" href="/articles">Articles</a>
+      <a class="transition-colors hover:text-ink" href="/#privacy">Privacy</a>
+    </nav>
+  </div>
+</header>

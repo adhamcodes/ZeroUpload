@@ -1,0 +1,46 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+const articles = (await getCollection("articles")).sort(
+  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf(),
+);
+
+const title = "Articles — Guides on File Formats & Private Conversion | ZeroUpload";
+const description =
+  "Practical guides on image formats, file conversion and digital privacy from the team behind ZeroUpload — the converter that never uploads your files.";
+---
+
+<Layout title={title} description={description}>
+  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8">
+    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">Articles</h1>
+    <p class="mt-4 text-lg text-stone">
+      Plain-English guides on file formats, conversion and keeping your files
+      private.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-2xl px-6 pb-16">
+    <div class="divide-y divide-mist">
+      {
+        articles.map((a) => (
+          <article class="py-7">
+            <a href={`/articles/${a.id}`} class="group block">
+              <h2 class="font-display text-2xl text-ink transition-colors group-hover:text-accent">
+                {a.data.title}
+              </h2>
+              <p class="mt-2 text-stone">{a.data.excerpt}</p>
+              <p class="mt-3 text-xs uppercase tracking-wider text-stone/70">
+                {a.data.publishDate.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </a>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,76 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "About ZeroUpload — The Converter That Never Uploads";
+const description =
+  "ZeroUpload is a file converter that runs 100% in your browser. Learn who we are, why we built a privacy-first converter, and how it works.";
+---
+
+<Layout title={title} description={description}>
+  <article class="mx-auto max-w-2xl px-6 pt-16 pb-20">
+    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">About ZeroUpload</h1>
+
+    <div class="article-body mt-8 space-y-4 text-stone leading-relaxed">
+      <p>
+        <strong>ZeroUpload converts your files without ever uploading them.</strong>
+      </p>
+      <p>
+        Most "free online converters" quietly send your private files — photos,
+        scans, contracts, voice memos — to a company's servers to do the work. We
+        thought that was backwards. Your files are nobody's business but yours.
+      </p>
+      <p>
+        So we built ZeroUpload on a single, uncompromising rule:
+        <strong>your files never leave your device.</strong>
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">
+        How that's possible: edge computing in your browser
+      </h2>
+      <p>
+        Modern browsers are powerful computers. Using technologies like the
+        Canvas API and WebAssembly (WASM) — the same engines that power
+        professional desktop software — ZeroUpload performs every conversion
+        locally, inside your own browser, on your own processor and memory.
+      </p>
+      <p>
+        Your file is read from your device, transformed in memory, and handed
+        straight back to you as a download. It is never transmitted across the
+        internet. There is no upload step, no server queue, and nothing for us to
+        store, see, or leak.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">What this means for you</h2>
+      <ul class="list-disc space-y-1 pl-5">
+        <li><strong>100% private.</strong> We can't read your files because we never receive them.</li>
+        <li><strong>Works offline.</strong> Load a page, disconnect your internet, and it still converts — the ultimate proof that nothing is being uploaded.</li>
+        <li><strong>Free and unlimited.</strong> Because the work runs on your device, there are no server costs — so there are no paywalls, no "2 free conversions" walls, and no sign-ups.</li>
+        <li><strong>Fast.</strong> No upload/download round trip. Conversion is instant.</li>
+      </ul>
+
+      <h2 class="font-display text-2xl text-ink">Our promise</h2>
+      <p>
+        ZeroUpload will never add a feature that uploads your files. The name is
+        the promise. If you ever want to verify our claims, open your browser's
+        Network tab while converting — you'll see zero upload requests — or read
+        our source code.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">Get in touch</h2>
+      <p>
+        Questions or ideas? Reach us at <strong>support@zeroupload.app</strong>.
+      </p>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-body :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+  .article-body :global(strong) {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+</style>

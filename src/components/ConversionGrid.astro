@@ -1,0 +1,30 @@
+---
+import type { Conversion } from "../data/conversions";
+
+interface Props {
+  conversions: Conversion[];
+}
+const { conversions } = Astro.props;
+---
+
+<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+  {
+    conversions.map((c) => (
+      <a
+        href={`/${c.slug}`}
+        class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+      >
+        <p class="font-display text-lg text-ink">
+          {c.from.name}{" "}
+          <span class="text-stone transition-colors group-hover:text-accent">
+            &rarr;
+          </span>{" "}
+          {c.to.name}
+        </p>
+        <p class="mt-1 text-xs text-stone">
+          Convert {c.from.name} to {c.to.name}
+        </p>
+      </a>
+    ))
+  }
+</div>

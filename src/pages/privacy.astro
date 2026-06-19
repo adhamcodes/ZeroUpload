@@ -1,0 +1,106 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Privacy Policy | ZeroUpload";
+const description =
+  "ZeroUpload's privacy policy. Your files are converted entirely in your browser and are never uploaded, stored, or seen by us.";
+const updated = "June 2026";
+---
+
+<Layout title={title} description={description}>
+  <article class="mx-auto max-w-2xl px-6 pt-16 pb-20">
+    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">Privacy Policy</h1>
+    <p class="mt-3 text-sm text-stone">Last updated: {updated}</p>
+
+    <div class="article-body mt-8 space-y-4 text-stone leading-relaxed">
+      <p>
+        Your privacy isn't a feature we added — it's the entire architecture of
+        the product. This policy explains, plainly, what does and does not happen
+        to your data.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">1. The short version</h2>
+      <p>
+        <strong>We never receive your files.</strong> Every conversion happens
+        locally, inside your web browser, on your own device. ZeroUpload does not
+        operate servers that receive, process, or store the files you convert —
+        because the conversion does not require one.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">2. Your files</h2>
+      <ul class="list-disc space-y-1 pl-5">
+        <li>When you convert a file, it is read into your browser's memory, converted on your device, and offered back to you as a download.</li>
+        <li>Your file is <strong>never uploaded</strong> to ZeroUpload or any third party.</li>
+        <li>We keep <strong>no copy</strong> of your files, ever. We could not retrieve one if asked — we never had it.</li>
+        <li>When you close or refresh the page, the file data is released from memory.</li>
+      </ul>
+      <p>
+        You can verify this yourself: start a conversion and then disconnect your
+        internet — it will still work — or open your browser's developer Network
+        tab and confirm there are no upload requests.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">3. Information we do collect</h2>
+      <p>
+        ZeroUpload is a static website. To operate and improve it, we may use:
+      </p>
+      <ul class="list-disc space-y-1 pl-5">
+        <li><strong>Privacy-respecting, aggregate analytics</strong> to understand anonymous usage (such as which pages are popular and general traffic counts). This never includes the contents of your files and is not used to identify you.</li>
+        <li><strong>Advertising:</strong> If the site displays ads, our advertising partners may use cookies or similar technologies as described in their own privacy policies. You can control cookies through your browser settings. Ads never receive your files.</li>
+      </ul>
+      <p>
+        We do not require accounts, and we do not ask for or store personal
+        information such as your name or email to use the converter.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">4. Cookies</h2>
+      <p>
+        The core converter works without requiring cookies. Any cookies used are
+        limited to basic site functionality and, where applicable, advertising
+        partners. You can block or delete cookies in your browser settings at any
+        time.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">5. Third-party services</h2>
+      <p>
+        The site is hosted on a content delivery network (CDN) that serves the
+        static pages and conversion engine files. Like all web hosts, the CDN may
+        process standard technical request data (such as IP address and user
+        agent) to deliver the site and protect against abuse. This is standard web
+        infrastructure and does not involve your converted files.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">6. Children's privacy</h2>
+      <p>
+        ZeroUpload is a general-purpose utility and is not directed at children
+        under 13. We do not knowingly collect personal information from children.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">7. Your rights (GDPR / CCPA)</h2>
+      <p>
+        Because we do not collect or store your files or personal account data,
+        there is nothing of yours for us to export or delete. For any questions
+        about data the CDN or advertising partners may process, contact us and we
+        will help where we can.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">8. Changes to this policy</h2>
+      <p>
+        We may update this policy from time to time. Material changes will be
+        reflected by the "Last updated" date above.
+      </p>
+
+      <h2 class="font-display text-2xl text-ink">9. Contact</h2>
+      <p>
+        Questions about privacy? Email <strong>support@zeroupload.app</strong>.
+      </p>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-body :global(strong) {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+</style>
