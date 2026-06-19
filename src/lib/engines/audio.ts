@@ -8,7 +8,7 @@
  * threatens tab memory. No upload, ever.
  */
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { fetchFile } from "@ffmpeg/util";
 import type { ConvertResult, ConvertOptions } from "../convert";
 
 const MIME: Record<string, string> = {
@@ -71,10 +71,12 @@ async function getFFmpeg(
     onProgress?.(-1, "Loading audio engine (first use only)…");
     loadPromise = (async () => {
       try {
-        const [coreURL, wasmURL] = await Promise.all([
-          toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
-          assembleWasmUrl(base, onProgress),
-        ]);
+        // ESM core, served same-origin. The Vite-bundled worker is a module
+        // worker, so it loads the core via `import(coreURL).default` — which
+        // requires the ESM build (the UMD build has no default export).
+        // Passing the direct URL (not a blob) lets that import resolve cleanly.
+        const coreURL = `${base}/ffmpeg-core.js`;
+        const wasmURL = await assembleWasmUrl(base, onProgress);
         await ff.load({ coreURL, wasmURL });
       } catch (err) {
         // Reset so the user can retry instead of caching a rejected load.

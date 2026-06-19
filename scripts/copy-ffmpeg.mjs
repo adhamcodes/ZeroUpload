@@ -24,7 +24,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
-const srcDir = resolve(root, "node_modules/@ffmpeg/core/dist/umd");
+const srcDir = resolve(root, "node_modules/@ffmpeg/core/dist/esm");
 const outDir = resolve(root, "public/ffmpeg");
 
 // Stay comfortably under Cloudflare's 25 MiB per-file limit.
