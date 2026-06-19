@@ -21,6 +21,8 @@ export interface ConvertOptions {
   scale?: number;
   /** progress callback for heavy engines (0..1 or -1 for indeterminate) */
   onProgress?: (ratio: number, label: string) => void;
+  /** persistent, user-facing notice (e.g. mobile page-cap on big PDFs) */
+  onInfo?: (message: string) => void;
 }
 
 /** Returns one or more output files (PDF->images yields one per page). */

@@ -128,6 +128,11 @@ export async function convertImage(
     );
   });
 
+  // Release the canvas memory deterministically (matters for back-to-back
+  // batches of large images).
+  canvas.width = 0;
+  canvas.height = 0;
+
   const baseName = file.name.replace(/\.[^.]+$/, "") || "converted";
   const ext = target === "jpeg" ? "jpeg" : target;
 

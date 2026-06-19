@@ -33,6 +33,8 @@ export interface Format {
   /** Canvas group only: can the canvas engine read / write it? */
   canDecode?: boolean;
   canEncode?: boolean;
+  /** Optional override for the file-picker accept attribute. */
+  accept?: string;
 }
 
 export const CATEGORIES: Record<
@@ -135,6 +137,7 @@ export const FORMATS: Format[] = [
   {
     id: "heic", name: "HEIC", fullName: "High Efficiency Image Container",
     category: "image", engineGroup: "heic", mime: "image/heic",
+    accept: ".heic,.heif,image/heic,image/heif",
     blurb: "Apple's modern, highly compressed photo format used by iPhones since iOS 11",
     whatIs: "HEIC (High Efficiency Image Container) is the format iPhones use to save photos since iOS 11. It compresses better than JPG at the same quality, but many websites, Windows PCs and older apps cannot open it — which is why converting HEIC is one of the most-searched tasks online.",
     useCases: ["opening iPhone photos on a PC or the web", "sharing photos with people on any device", "uploading to sites that reject HEIC"],

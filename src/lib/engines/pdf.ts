@@ -39,6 +39,13 @@ export async function pdfToImages(
   const base = file.name.replace(/\.[^.]+$/, "") || "page";
   const results: ConvertResult[] = [];
 
+  // No silent failure: tell the user if we capped pages to protect memory.
+  if (pageCount < pdf.numPages) {
+    opts.onInfo?.(
+      `This device converted the first ${pageCount} of ${pdf.numPages} pages to keep your browser stable. For the full document, try a desktop or split the PDF.`,
+    );
+  }
+
   for (let i = 1; i <= pageCount; i++) {
     const page = await pdf.getPage(i);
     const viewport = page.getViewport({ scale });

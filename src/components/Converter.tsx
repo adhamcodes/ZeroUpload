@@ -84,6 +84,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
   const [dragging, setDragging] = useState(false);
   const [items, setItems] = useState<DoneItem[]>([]);
   const [error, setError] = useState<string>("");
+  const [info, setInfo] = useState<string>("");
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [statusLabel, setStatusLabel] = useState("Converting on your device…");
   const [device, setDevice] = useState<DeviceProfile | null>(null);
@@ -123,6 +124,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
 
       setStatus("working");
       setError("");
+      setInfo("");
       setProgress({ done: 0, total: files.length });
       setStatusLabel(
         engineIsHeavy(engine)
@@ -132,10 +134,12 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
       const done: DoneItem[] = [];
 
       try {
-        // PDF mobile guard: cap pages rendered.
+        // PDF mobile guard: cap pages rendered and lower render scale.
         const opts = {
           maxPages: d.lowMemory && engine === "pdf2img" ? 30 : undefined,
+          scale: d.lowMemory && engine === "pdf2img" ? 1.5 : undefined,
           onProgress: (_r: number, label: string) => setStatusLabel(label),
+          onInfo: (message: string) => setInfo(message),
         };
 
         for (let i = 0; i < files.length; i++) {
@@ -191,6 +195,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
     setItems([]);
     setStatus("idle");
     setError("");
+    setInfo("");
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -271,6 +276,12 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
       {error && (
         <div className="mt-4 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
           {error}
+        </div>
+      )}
+
+      {info && (
+        <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
+          {info}
         </div>
       )}
 

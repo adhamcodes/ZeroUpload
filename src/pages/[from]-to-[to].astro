@@ -80,7 +80,7 @@ const jsonLd = [
   },
 ];
 
-const accept = `.${c.from.id},${c.from.mime}`;
+const accept = c.from.accept ?? `.${c.from.id},${c.from.mime}`;
 ---
 
 <Layout title={pageTitle(c)} description={metaDescription(c)} jsonLd={jsonLd}>

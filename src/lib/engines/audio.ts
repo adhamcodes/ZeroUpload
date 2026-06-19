@@ -78,6 +78,8 @@ async function getFFmpeg(
         const coreURL = `${base}/ffmpeg-core.js`;
         const wasmURL = await assembleWasmUrl(base, onProgress);
         await ff.load({ coreURL, wasmURL });
+        // The wasm is now compiled into the module; free the ~30MB blob URL.
+        URL.revokeObjectURL(wasmURL);
       } catch (err) {
         // Reset so the user can retry instead of caching a rejected load.
         loadPromise = null;
