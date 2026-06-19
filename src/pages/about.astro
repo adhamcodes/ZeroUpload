@@ -12,41 +12,53 @@ const description =
 
     <div class="article-body mt-8 space-y-4 text-stone leading-relaxed">
       <p>
-        ZeroUpload is a free file converter with one defining principle:
-        <strong>your files never leave your device.</strong> Every conversion
-        happens locally, inside your own web browser, using technologies like the
-        Canvas API and WebAssembly.
+        <strong>ZeroUpload converts your files without ever uploading them.</strong>
+      </p>
+      <p>
+        Most "free online converters" quietly send your private files — photos,
+        scans, contracts, voice memos — to a company's servers to do the work. We
+        thought that was backwards. Your files are nobody's business but yours.
+      </p>
+      <p>
+        So we built ZeroUpload on a single, uncompromising rule:
+        <strong>your files never leave your device.</strong>
       </p>
 
-      <h2 class="font-display text-2xl text-ink">Why we built it</h2>
+      <h2 class="font-display text-2xl text-ink">
+        How that's possible: edge computing in your browser
+      </h2>
       <p>
-        Almost every "free online converter" quietly uploads your files to a
-        remote server to do its work. For private documents and personal photos,
-        that is an unnecessary risk. We believed there was a better way — and
-        modern browsers are now powerful enough to convert files without sending
-        them anywhere.
+        Modern browsers are powerful computers. Using technologies like the
+        Canvas API and WebAssembly (WASM) — the same engines that power
+        professional desktop software — ZeroUpload performs every conversion
+        locally, inside your own browser, on your own processor and memory.
+      </p>
+      <p>
+        Your file is read from your device, transformed in memory, and handed
+        straight back to you as a download. It is never transmitted across the
+        internet. There is no upload step, no server queue, and nothing for us to
+        store, see, or leak.
       </p>
 
-      <h2 class="font-display text-2xl text-ink">How it works</h2>
-      <p>
-        When you drop a file into ZeroUpload, it is read from your device into
-        memory, transformed by an in-browser engine, and returned to you as a
-        download. Nothing is transmitted across the internet. You can prove this
-        yourself: start a conversion, disconnect your internet, and watch it keep
-        working.
-      </p>
+      <h2 class="font-display text-2xl text-ink">What this means for you</h2>
+      <ul class="list-disc space-y-1 pl-5">
+        <li><strong>100% private.</strong> We can't read your files because we never receive them.</li>
+        <li><strong>Works offline.</strong> Load a page, disconnect your internet, and it still converts — the ultimate proof that nothing is being uploaded.</li>
+        <li><strong>Free and unlimited.</strong> Because the work runs on your device, there are no server costs — so there are no paywalls, no "2 free conversions" walls, and no sign-ups.</li>
+        <li><strong>Fast.</strong> No upload/download round trip. Conversion is instant.</li>
+      </ul>
 
-      <h2 class="font-display text-2xl text-ink">What we offer</h2>
+      <h2 class="font-display text-2xl text-ink">Our promise</h2>
       <p>
-        Free, unlimited, private file conversion with no account required. Because
-        the work runs on your device, there are no server costs — and therefore no
-        paywalls, no queues, and no limits beyond what your own device can handle.
+        ZeroUpload will never add a feature that uploads your files. The name is
+        the promise. If you ever want to verify our claims, open your browser's
+        Network tab while converting — you'll see zero upload requests — or read
+        our source code.
       </p>
 
       <h2 class="font-display text-2xl text-ink">Get in touch</h2>
       <p>
-        Questions, feedback or a format you'd like us to support? Reach us at
-        <strong>hello@zeroupload.app</strong>.
+        Questions or ideas? Reach us at <strong>support@zeroupload.app</strong>.
       </p>
     </div>
   </article>
@@ -56,5 +68,9 @@ const description =
   .article-body :global(a) {
     color: var(--color-accent);
     text-decoration: underline;
+  }
+  .article-body :global(strong) {
+    color: var(--color-ink);
+    font-weight: 600;
   }
 </style>
