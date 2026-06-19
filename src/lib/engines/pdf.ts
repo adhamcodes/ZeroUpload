@@ -29,7 +29,8 @@ export async function pdfToImages(
   const start = performance.now();
   const lib = await getPdfjs();
   const data = new Uint8Array(await file.arrayBuffer());
-  const pdf = await lib.getDocument({ data }).promise;
+  const loadingTask = lib.getDocument({ data });
+  const pdf = await loadingTask.promise;
 
   const scale = opts.scale ?? 2;
   const maxPages = opts.maxPages ?? pdf.numPages;
@@ -75,7 +76,13 @@ export async function pdfToImages(
     opts.onProgress?.(i / pageCount, `Rendered page ${i} of ${pageCount}`);
   }
 
-  await pdf.destroy();
+  await pdf.cleanup();
+  // In pdf.js the loading task owns destroy(); guard for version differences.
+  try {
+    await loadingTask.destroy();
+  } catch {
+    /* non-fatal cleanup */
+  }
   return results;
 }
 

@@ -22,6 +22,7 @@ const MIME: Record<string, string> = {
 
 let ffmpeg: FFmpeg | null = null;
 let loadPromise: Promise<void> | null = null;
+const recentLog: string[] = [];
 
 /**
  * Reassemble the split ffmpeg-core.wasm from its same-origin parts into a
@@ -57,17 +58,30 @@ async function assembleWasmUrl(
 async function getFFmpeg(
   onProgress?: (ratio: number, label: string) => void,
 ): Promise<FFmpeg> {
-  if (!ffmpeg) ffmpeg = new FFmpeg();
+  if (!ffmpeg) {
+    ffmpeg = new FFmpeg();
+    ffmpeg.on("log", ({ message }) => {
+      recentLog.push(message);
+      if (recentLog.length > 15) recentLog.shift();
+    });
+  }
   const ff = ffmpeg;
   if (!loadPromise) {
     const base = "/ffmpeg";
     onProgress?.(-1, "Loading audio engine (first use only)…");
     loadPromise = (async () => {
-      const [coreURL, wasmURL] = await Promise.all([
-        toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
-        assembleWasmUrl(base, onProgress),
-      ]);
-      await ff.load({ coreURL, wasmURL });
+      try {
+        const [coreURL, wasmURL] = await Promise.all([
+          toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
+          assembleWasmUrl(base, onProgress),
+        ]);
+        await ff.load({ coreURL, wasmURL });
+      } catch (err) {
+        // Reset so the user can retry instead of caching a rejected load.
+        loadPromise = null;
+        const detail = err instanceof Error ? err.message : String(err);
+        throw new Error(`Could not start the audio engine. ${detail}`.trim());
+      }
     })();
   }
   await loadPromise;
@@ -88,8 +102,20 @@ export async function convertAudio(
   const output = `out_${stamp}.${target}`;
 
   await ff.writeFile(input, await fetchFile(file));
-  await ff.exec(["-i", input, output]);
-  const data = await ff.readFile(output);
+
+  recentLog.length = 0;
+  const code = await ff.exec(["-i", input, output]);
+
+  let data: Uint8Array | string;
+  try {
+    data = await ff.readFile(output);
+  } catch {
+    const tail = recentLog.slice(-6).join(" | ");
+    await ff.deleteFile(input).catch(() => {});
+    throw new Error(
+      `Audio conversion failed (ffmpeg exit ${code}). ${tail || "No output produced."}`,
+    );
+  }
 
   await ff.deleteFile(input).catch(() => {});
   await ff.deleteFile(output).catch(() => {});

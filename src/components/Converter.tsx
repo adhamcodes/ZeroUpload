@@ -154,9 +154,14 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
         setItems((prev) => [...done, ...prev]);
         setStatus("done");
       } catch (e) {
-        setError(
-          e instanceof Error ? e.message : "Something went wrong converting that file.",
-        );
+        console.error("[ZeroUpload] conversion error:", e);
+        const msg =
+          e instanceof Error
+            ? e.message
+            : typeof e === "string"
+              ? e
+              : "Something went wrong converting that file.";
+        setError(msg);
         setStatus("error");
       } finally {
         setProgress(null);
