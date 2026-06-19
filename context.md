@@ -104,3 +104,17 @@ ZeroUpload is now a full multi-format converter. **75 pages** build clean.
 
 ### New hubs / nav
 - `/image-converter`, `/document-converter`, `/audio-converter` + header/footer links + homepage category cards.
+
+
+---
+
+## Deploy fix — Cloudflare 25 MiB asset limit (PR #3)
+
+Cloudflare Pages rejects any single file > 25 MiB; `ffmpeg-core.wasm` is ~30.7 MiB,
+which failed the first deploy. Fix: `scripts/copy-ffmpeg.mjs` now **splits** the
+wasm into < 25 MiB parts (`ffmpeg-core.wasm.part0/1`) plus a manifest, and
+`src/lib/engines/audio.ts` reassembles them byte-exact in the browser before
+loading ffmpeg. Still 100% same-origin, no external CDN, $0, private,
+offline-after-cache. Cloudflare gzip-compresses the parts over the wire, so the
+user download stays small. Verified: no dist file exceeds 25 MiB; parts sum to
+the exact original byte count.

@@ -23,6 +23,37 @@ const MIME: Record<string, string> = {
 let ffmpeg: FFmpeg | null = null;
 let loadPromise: Promise<void> | null = null;
 
+/**
+ * Reassemble the split ffmpeg-core.wasm from its same-origin parts into a
+ * single blob URL. Parts are < 25 MiB each (Cloudflare Pages limit) and are
+ * concatenated back into the exact original bytes — entirely in the browser.
+ */
+async function assembleWasmUrl(
+  base: string,
+  onProgress?: (ratio: number, label: string) => void,
+): Promise<string> {
+  const manifest: { parts: string[] } = await fetch(
+    `${base}/ffmpeg-core.wasm.manifest.json`,
+  ).then((r) => {
+    if (!r.ok) throw new Error("Could not load the audio engine manifest.");
+    return r.json();
+  });
+
+  const buffers: ArrayBuffer[] = [];
+  for (let i = 0; i < manifest.parts.length; i++) {
+    onProgress?.(
+      -1,
+      `Loading audio engine (${i + 1}/${manifest.parts.length})…`,
+    );
+    const res = await fetch(`${base}/${manifest.parts[i]}`);
+    if (!res.ok) throw new Error("Could not load the audio engine.");
+    buffers.push(await res.arrayBuffer());
+  }
+
+  const blob = new Blob(buffers, { type: "application/wasm" });
+  return URL.createObjectURL(blob);
+}
+
 async function getFFmpeg(
   onProgress?: (ratio: number, label: string) => void,
 ): Promise<FFmpeg> {
@@ -32,10 +63,11 @@ async function getFFmpeg(
     const base = "/ffmpeg";
     onProgress?.(-1, "Loading audio engine (first use only)…");
     loadPromise = (async () => {
-      await ff.load({
-        coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
-        wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, "application/wasm"),
-      });
+      const [coreURL, wasmURL] = await Promise.all([
+        toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
+        assembleWasmUrl(base, onProgress),
+      ]);
+      await ff.load({ coreURL, wasmURL });
     })();
   }
   await loadPromise;
