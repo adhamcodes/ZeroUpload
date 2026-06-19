@@ -3,12 +3,12 @@ import Layout from "../layouts/Layout.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
 import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 
-const cat = CATEGORIES.image;
-const list = conversionsByCategory("image").filter((c) => c.engine !== "img2pdf");
+const cat = CATEGORIES.document;
+const list = conversionsByCategory("document");
 
-const title = "Free Image Converter — Convert Images In Your Browser | ZeroUpload";
+const title = "Free PDF Converter — PDF to Image & Image to PDF | ZeroUpload";
 const description =
-  "Convert PNG, JPG, WEBP, HEIC, SVG, GIF and BMP images instantly in your browser. 100% private — no upload, no signup, no limits. Files never leave your device.";
+  "Convert PDF to JPG/PNG and images to PDF instantly in your browser. 100% private — no upload, no signup, no limits. Your documents never leave your device.";
 
 const jsonLd = [
   { "@context": "https://schema.org", "@type": "CollectionPage", name: title, description },
@@ -22,7 +22,7 @@ const jsonLd = [
   </section>
 
   <section class="mx-auto max-w-5xl px-6 py-8">
-    <h2 class="font-display text-2xl">All image conversions</h2>
+    <h2 class="font-display text-2xl">All PDF conversions</h2>
     <div class="mt-8">
       <ConversionGrid conversions={list} />
     </div>

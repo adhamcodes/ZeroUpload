@@ -100,6 +100,7 @@ const accept = `.${c.from.id},${c.from.mime}`;
   <section class="mx-auto max-w-2xl px-6 pb-8">
     <Converter
       client:load
+      engine={c.engine}
       to={c.to.id}
       fromName={c.from.name}
       toName={c.to.name}

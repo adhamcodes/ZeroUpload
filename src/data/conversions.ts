@@ -1,51 +1,38 @@
 /**
  * THE BRAIN — ZeroUpload programmatic SEO engine.
  *
- * Everything about which conversions exist, and the SEO metadata for each
- * generated page, flows from this single file. Add a format or flip a flag
- * here and the build produces new fully-formed, SEO-optimised static pages
- * automatically (see src/pages/[from]-to-[to].astro).
+ * One file defines every format, every conversion pair, the engine that powers
+ * it, and the SEO metadata for the generated page. Add a format here and the
+ * build spawns new fully-formed, SEO-optimised static pages automatically
+ * (see src/pages/[from]-to-[to].astro).
  *
- * ANTI-THIN-CONTENT NOTE:
- * Each Format carries genuinely unique editorial fields (whatIs / useCases /
- * pros / cons). Because every page combines two DIFFERENT formats, the body
- * copy differs substantially from page to page — not just the H1/keywords.
- * For the highest-volume pages we additionally inject hand-written Markdown
- * via src/data/customCopy.ts. Together these keep us clear of Google's
- * "thin programmatic spam" filter.
- *
- * Engine support flags are RELATIVE TO THE CURRENTLY SHIPPED ENGINE
- * (the in-browser Canvas image engine). We only generate pages for
- * conversions we can actually perform, so every indexed page genuinely
- * works — critical for SEO trust and low bounce rates.
+ * Engines (all 100% in-browser, no upload):
+ *   - "image"   Canvas API (png/jpg/jpeg/webp/gif/bmp/svg)
+ *   - "heic"    libheif via heic-to (Apple HEIC photos)
+ *   - "pdf2img" pdf.js (PDF pages -> images)
+ *   - "img2pdf" pdf-lib (image -> PDF)
+ *   - "audio"   ffmpeg.wasm (mp3/wav/ogg/m4a/flac/aac)
  */
 
 export type Category = "image" | "document" | "audio";
+export type EngineGroup = "canvas" | "heic" | "pdf" | "audio";
+export type EngineId = "image" | "heic" | "pdf2img" | "img2pdf" | "audio";
 
 export interface Format {
-  /** lowercase url + extension token, e.g. "png" */
   id: string;
-  /** Display name, e.g. "PNG" */
   name: string;
-  /** Human full name, e.g. "Portable Network Graphics" */
   fullName: string;
   category: Category;
-  /** MIME type used for encoding (targets only need a valid one) */
+  engineGroup: EngineGroup;
   mime: string;
-  /** One-line description used in SEO body copy */
   blurb: string;
-  /** Unique 2-3 sentence explainer — drives per-page content uniqueness */
   whatIs: string;
-  /** Real-world situations this format is used in */
   useCases: string[];
-  /** Strengths */
   pros: string[];
-  /** Weaknesses */
   cons: string[];
-  /** Can the shipped engine DECODE (read) this format? */
-  canDecode: boolean;
-  /** Can the shipped engine ENCODE (write) this format? */
-  canEncode: boolean;
+  /** Canvas group only: can the canvas engine read / write it? */
+  canDecode?: boolean;
+  canEncode?: boolean;
 }
 
 export const CATEGORIES: Record<
@@ -59,158 +46,167 @@ export const CATEGORIES: Record<
       "Convert images instantly in your browser. No upload, no quality games, no limits.",
   },
   document: {
-    title: "Document Converter",
+    title: "PDF & Document Converter",
     slug: "document-converter",
     tagline:
-      "Convert and transform documents privately, right on your device.",
+      "Turn PDFs into images and images into PDFs — privately, on your device.",
   },
   audio: {
     title: "Audio Converter",
     slug: "audio-converter",
-    tagline: "Convert audio files locally — your media never leaves your machine.",
+    tagline:
+      "Convert audio files locally with ffmpeg in your browser. Your media never leaves your machine.",
   },
 };
 
 export const FORMATS: Format[] = [
+  // ---------- Canvas image formats ----------
   {
-    id: "png",
-    name: "PNG",
-    fullName: "Portable Network Graphics",
-    category: "image",
-    mime: "image/png",
-    blurb:
-      "a lossless image format with transparency support, ideal for graphics, logos and screenshots",
-    whatIs:
-      "PNG (Portable Network Graphics) is a lossless raster format created as a free, patent-unencumbered replacement for GIF. It supports a full alpha (transparency) channel and reproduces sharp edges and text without compression artefacts, which makes it the default choice for logos, icons, UI assets and screenshots.",
-    useCases: [
-      "logos and brand assets that need a transparent background",
-      "screenshots where text must stay crisp",
-      "UI elements, icons and illustrations",
-    ],
+    id: "png", name: "PNG", fullName: "Portable Network Graphics",
+    category: "image", engineGroup: "canvas", mime: "image/png",
+    blurb: "a lossless image format with transparency support, ideal for graphics, logos and screenshots",
+    whatIs: "PNG (Portable Network Graphics) is a lossless raster format with a full alpha (transparency) channel. It reproduces sharp edges and text without compression artefacts, making it the default for logos, icons, UI assets and screenshots.",
+    useCases: ["logos and brand assets that need a transparent background", "screenshots where text must stay crisp", "UI elements, icons and illustrations"],
     pros: ["Lossless quality", "Transparency (alpha) support", "Great for sharp edges and text"],
     cons: ["Larger files than JPG for photos", "No animation"],
-    canDecode: true,
-    canEncode: true,
+    canDecode: true, canEncode: true,
   },
   {
-    id: "jpg",
-    name: "JPG",
-    fullName: "JPEG Image",
-    category: "image",
-    mime: "image/jpeg",
-    blurb:
-      "a widely supported, compressed image format perfect for photographs and web images",
-    whatIs:
-      "JPG (also written JPEG) is a lossy compressed format engineered for photographs. Its compression discards detail the human eye barely notices, producing dramatically smaller files than lossless formats. It is the most universally supported image format on earth — every browser, phone and editor reads it.",
-    useCases: [
-      "photographs shared online or by email",
-      "web images where small file size matters",
-      "anywhere maximum compatibility is required",
-    ],
+    id: "jpg", name: "JPG", fullName: "JPEG Image",
+    category: "image", engineGroup: "canvas", mime: "image/jpeg",
+    blurb: "a widely supported, compressed image format perfect for photographs and web images",
+    whatIs: "JPG (also written JPEG) is a lossy compressed format engineered for photographs. It discards detail the eye barely notices to produce far smaller files, and it is the most universally supported image format in existence.",
+    useCases: ["photographs shared online or by email", "web images where small file size matters", "anywhere maximum compatibility is required"],
     pros: ["Very small file sizes", "Universally supported", "Ideal for photos"],
     cons: ["Lossy — quality degrades on re-saves", "No transparency"],
-    canDecode: true,
-    canEncode: true,
+    canDecode: true, canEncode: true,
   },
   {
-    id: "jpeg",
-    name: "JPEG",
-    fullName: "JPEG Image",
-    category: "image",
-    mime: "image/jpeg",
-    blurb:
-      "the full name for the JPG format — a compressed image standard used everywhere online",
-    whatIs:
-      "JPEG and JPG are the exact same format — the only difference is the file extension. Older Windows software required three-letter extensions, which is why '.jpg' became common, while '.jpeg' is the original full spelling. Both open identically everywhere.",
-    useCases: [
-      "renaming or normalising photo extensions",
-      "satisfying software that expects one specific spelling",
-      "photographs and web imagery",
-    ],
+    id: "jpeg", name: "JPEG", fullName: "JPEG Image",
+    category: "image", engineGroup: "canvas", mime: "image/jpeg",
+    blurb: "the full name for the JPG format — a compressed image standard used everywhere online",
+    whatIs: "JPEG and JPG are the same format; only the file extension differs. Older Windows software wanted three-letter extensions, so '.jpg' became common, while '.jpeg' is the original spelling. Both open identically everywhere.",
+    useCases: ["renaming or normalising photo extensions", "satisfying software that expects one specific spelling", "photographs and web imagery"],
     pros: ["Identical to JPG", "Small files", "Universal support"],
     cons: ["Lossy", "No transparency"],
-    canDecode: true,
-    canEncode: true,
+    canDecode: true, canEncode: true,
   },
   {
-    id: "webp",
-    name: "WEBP",
-    fullName: "WebP Image",
-    category: "image",
-    mime: "image/webp",
-    blurb:
-      "a modern Google format offering superior compression and smaller file sizes for the web",
-    whatIs:
-      "WebP is a modern image format developed by Google that delivers both lossy and lossless compression. At equivalent quality it is typically 25–35% smaller than JPG or PNG, and it supports transparency and animation. It is now supported by every major browser, making it a favourite for fast-loading websites.",
-    useCases: [
-      "speeding up website load times",
-      "replacing heavier PNG/JPG assets",
-      "modern web galleries and thumbnails",
-    ],
+    id: "webp", name: "WEBP", fullName: "WebP Image",
+    category: "image", engineGroup: "canvas", mime: "image/webp",
+    blurb: "a modern Google format offering superior compression and smaller file sizes for the web",
+    whatIs: "WebP is a modern Google format with both lossy and lossless modes. At equal quality it is typically 25–35% smaller than JPG or PNG, supports transparency, and is now backed by every major browser.",
+    useCases: ["speeding up website load times", "replacing heavier PNG/JPG assets", "modern web galleries and thumbnails"],
     pros: ["Smaller than JPG/PNG at the same quality", "Supports transparency", "Modern browser support"],
     cons: ["Less universal in old desktop apps", "Occasionally rejected by legacy tools"],
-    canDecode: true,
-    canEncode: true,
+    canDecode: true, canEncode: true,
   },
   {
-    id: "gif",
-    name: "GIF",
-    fullName: "Graphics Interchange Format",
-    category: "image",
-    mime: "image/gif",
-    blurb:
-      "a classic format known for animations and simple graphics with a limited colour palette",
-    whatIs:
-      "GIF (Graphics Interchange Format) is a veteran format limited to a 256-colour palette per frame. It is best known for simple animations and low-complexity graphics. Because of its palette limit it handles photographs poorly, but it remains everywhere thanks to decades of compatibility.",
-    useCases: [
-      "simple looping animations",
-      "low-colour graphics and stickers",
-      "legacy assets that must stay GIF",
-    ],
+    id: "gif", name: "GIF", fullName: "Graphics Interchange Format",
+    category: "image", engineGroup: "canvas", mime: "image/gif",
+    blurb: "a classic format known for animations and simple graphics with a limited colour palette",
+    whatIs: "GIF (Graphics Interchange Format) is a veteran format limited to 256 colours per frame, best known for simple animations and flat graphics. It handles photos poorly but remains everywhere thanks to decades of compatibility.",
+    useCases: ["simple looping animations", "low-colour graphics and stickers", "legacy assets that must stay GIF"],
     pros: ["Universally supported", "Supports simple animation", "Tiny for flat graphics"],
     cons: ["Only 256 colours", "Poor for photos", "Large for anything detailed"],
-    canDecode: true,
-    canEncode: false,
+    canDecode: true, canEncode: false,
   },
   {
-    id: "bmp",
-    name: "BMP",
-    fullName: "Bitmap Image",
-    category: "image",
-    mime: "image/bmp",
-    blurb:
-      "an uncompressed raster format that stores pixel data with maximum fidelity",
-    whatIs:
-      "BMP (Bitmap) is an old, typically uncompressed raster format from the Windows ecosystem. It stores raw pixel data, so quality is perfect but files are enormous. It is rarely used on the web today, which is why converting BMP to a compressed format like PNG, JPG or WebP is so common.",
-    useCases: [
-      "exporting from legacy Windows software",
-      "raw pixel-perfect intermediates",
-      "files that must shrink for sharing",
-    ],
+    id: "bmp", name: "BMP", fullName: "Bitmap Image",
+    category: "image", engineGroup: "canvas", mime: "image/bmp",
+    blurb: "an uncompressed raster format that stores pixel data with maximum fidelity",
+    whatIs: "BMP (Bitmap) is an old, typically uncompressed Windows raster format. It stores raw pixel data, so quality is perfect but files are enormous — which is why converting BMP to PNG, JPG or WebP is so common.",
+    useCases: ["exporting from legacy Windows software", "raw pixel-perfect intermediates", "files that must shrink for sharing"],
     pros: ["Lossless, raw pixels", "Simple, well-documented"],
     cons: ["Huge file sizes", "No real web support", "No compression"],
-    canDecode: true,
-    canEncode: false,
+    canDecode: true, canEncode: false,
   },
   {
-    id: "svg",
-    name: "SVG",
-    fullName: "Scalable Vector Graphics",
-    category: "image",
-    mime: "image/svg+xml",
-    blurb:
-      "a resolution-independent vector format that scales perfectly to any size",
-    whatIs:
-      "SVG (Scalable Vector Graphics) is an XML-based vector format. Instead of pixels it stores shapes and paths, so it scales to any size without ever losing sharpness. It is ideal for logos and icons, but many platforms (social media, some editors) require a raster format, which is why converting SVG to PNG or JPG is frequently needed.",
-    useCases: [
-      "logos and icons at any resolution",
-      "exporting vectors to a raster for social media",
-      "generating high-resolution image assets",
-    ],
+    id: "svg", name: "SVG", fullName: "Scalable Vector Graphics",
+    category: "image", engineGroup: "canvas", mime: "image/svg+xml",
+    blurb: "a resolution-independent vector format that scales perfectly to any size",
+    whatIs: "SVG (Scalable Vector Graphics) is an XML-based vector format. It stores shapes rather than pixels, so it scales to any size without losing sharpness. Many platforms require a raster, which is why converting SVG to PNG or JPG is frequently needed.",
+    useCases: ["logos and icons at any resolution", "exporting vectors to a raster for social media", "generating high-resolution image assets"],
     pros: ["Infinitely scalable", "Tiny for simple graphics", "Editable as code"],
     cons: ["Not a photo format", "Rejected by many raster-only platforms"],
-    canDecode: true,
-    canEncode: false,
+    canDecode: true, canEncode: false,
+  },
+  // ---------- HEIC (Apple) ----------
+  {
+    id: "heic", name: "HEIC", fullName: "High Efficiency Image Container",
+    category: "image", engineGroup: "heic", mime: "image/heic",
+    blurb: "Apple's modern, highly compressed photo format used by iPhones since iOS 11",
+    whatIs: "HEIC (High Efficiency Image Container) is the format iPhones use to save photos since iOS 11. It compresses better than JPG at the same quality, but many websites, Windows PCs and older apps cannot open it — which is why converting HEIC is one of the most-searched tasks online.",
+    useCases: ["opening iPhone photos on a PC or the web", "sharing photos with people on any device", "uploading to sites that reject HEIC"],
+    pros: ["Excellent compression", "High image quality", "Saves storage on iPhones"],
+    cons: ["Poor compatibility outside Apple", "Rejected by many websites and apps"],
+    canDecode: false, canEncode: false,
+  },
+  // ---------- PDF ----------
+  {
+    id: "pdf", name: "PDF", fullName: "Portable Document Format",
+    category: "document", engineGroup: "pdf", mime: "application/pdf",
+    blurb: "the universal document format that looks identical on every device",
+    whatIs: "PDF (Portable Document Format) preserves layout, fonts and images so a document looks the same everywhere. Converting PDF pages to images is handy for previews and sharing, while turning images into a PDF is perfect for documents, receipts and portfolios.",
+    useCases: ["extracting pages as images", "turning photos or scans into a single document", "sharing layout-perfect files"],
+    pros: ["Identical on every device", "Great for documents and printing", "Universally supported"],
+    cons: ["Not directly editable as an image", "Can be large"],
+    canDecode: false, canEncode: false,
+  },
+  // ---------- Audio ----------
+  {
+    id: "mp3", name: "MP3", fullName: "MPEG-1 Audio Layer III",
+    category: "audio", engineGroup: "audio", mime: "audio/mpeg",
+    blurb: "the universal compressed audio format that plays on virtually any device",
+    whatIs: "MP3 is the most widely supported compressed audio format on earth. It shrinks audio dramatically with quality good enough for nearly all listening, and plays on essentially every device and app.",
+    useCases: ["music for any phone, car or player", "podcasts and voice recordings", "anywhere maximum compatibility matters"],
+    pros: ["Plays everywhere", "Small files", "Great general-purpose format"],
+    cons: ["Lossy compression", "No multichannel surround"],
+  },
+  {
+    id: "wav", name: "WAV", fullName: "Waveform Audio File Format",
+    category: "audio", engineGroup: "audio", mime: "audio/wav",
+    blurb: "an uncompressed, lossless audio format with perfect fidelity",
+    whatIs: "WAV is an uncompressed, lossless audio format that stores raw sound exactly. The quality is perfect and editing-friendly, but the files are large, so WAV is common for production and converting to MP3 for sharing.",
+    useCases: ["audio editing and production", "archiving master recordings", "feeding tools that need uncompressed input"],
+    pros: ["Lossless, perfect quality", "Ideal for editing", "Universally readable"],
+    cons: ["Very large files", "Not practical for casual sharing"],
+  },
+  {
+    id: "ogg", name: "OGG", fullName: "Ogg Vorbis Audio",
+    category: "audio", engineGroup: "audio", mime: "audio/ogg",
+    blurb: "a free, open, high-quality compressed audio format",
+    whatIs: "OGG (Vorbis) is a free, open compressed audio format that often beats MP3 in quality at the same size. It is popular in gaming and open-source software, though desktop support is less universal than MP3.",
+    useCases: ["game audio and open-source apps", "high-quality streaming", "patent-free distribution"],
+    pros: ["Better quality than MP3 at equal size", "Free and open", "Good for streaming"],
+    cons: ["Less universal hardware support", "Some apps don't accept it"],
+  },
+  {
+    id: "m4a", name: "M4A", fullName: "MPEG-4 Audio (AAC)",
+    category: "audio", engineGroup: "audio", mime: "audio/mp4",
+    blurb: "Apple's efficient AAC audio format used by iTunes and Apple Music",
+    whatIs: "M4A is an MPEG-4 audio container, usually holding AAC. It offers better quality than MP3 at the same bitrate and is the default for iTunes, Apple Music and voice memos, but plays less universally than MP3.",
+    useCases: ["Apple ecosystem audio", "higher quality than MP3 at small sizes", "voice memos and downloads"],
+    pros: ["Better quality than MP3 per byte", "Efficient compression", "Standard on Apple devices"],
+    cons: ["Less universal than MP3", "Occasionally rejected by older players"],
+  },
+  {
+    id: "flac", name: "FLAC", fullName: "Free Lossless Audio Codec",
+    category: "audio", engineGroup: "audio", mime: "audio/flac",
+    blurb: "a lossless compressed format beloved by audiophiles",
+    whatIs: "FLAC (Free Lossless Audio Codec) compresses audio with zero quality loss — typically to about half the size of WAV. It is the audiophile favourite for archiving and high-fidelity listening, at the cost of larger files than lossy formats.",
+    useCases: ["lossless music archiving", "high-fidelity listening", "preserving quality while saving space vs WAV"],
+    pros: ["Lossless quality", "Smaller than WAV", "Free and open"],
+    cons: ["Larger than MP3/AAC", "Not supported by every device"],
+  },
+  {
+    id: "aac", name: "AAC", fullName: "Advanced Audio Coding",
+    category: "audio", engineGroup: "audio", mime: "audio/aac",
+    blurb: "a modern lossy codec offering better quality than MP3 at the same bitrate",
+    whatIs: "AAC (Advanced Audio Coding) is the successor to MP3, delivering better sound at the same bitrate. It powers YouTube, Apple Music and most streaming, and is widely (though not universally) supported.",
+    useCases: ["streaming and downloads", "higher quality than MP3 at the same size", "modern device playback"],
+    pros: ["Better quality than MP3 per byte", "Widely supported", "Streaming standard"],
+    cons: ["Lossy", "Slightly less universal than MP3"],
   },
 ];
 
@@ -221,26 +217,53 @@ export const FORMAT_BY_ID: Record<string, Format> = Object.fromEntries(
 export interface Conversion {
   from: Format;
   to: Format;
-  /** url slug, e.g. "heic-to-jpg" */
+  engine: EngineId;
   slug: string;
 }
 
-/**
- * Auto-generate every valid (decode -> encode) pair within a category.
- * This is the carpet-bomb: one rule here = N new pages at build time.
- */
+function conv(from: Format, to: Format, engine: EngineId): Conversion {
+  return { from, to, engine, slug: `${from.id}-to-${to.id}` };
+}
+
+/** Auto-generate every supported pair, tagging each with its engine. */
 function generateConversions(): Conversion[] {
   const out: Conversion[] = [];
+  const f = FORMAT_BY_ID;
+  const canvasTargets = FORMATS.filter(
+    (x) => x.engineGroup === "canvas" && x.canEncode,
+  );
+
+  // 1. Canvas image -> image
   for (const from of FORMATS) {
-    if (!from.canDecode) continue;
-    for (const to of FORMATS) {
-      if (!to.canEncode) continue;
+    if (from.engineGroup !== "canvas" || !from.canDecode) continue;
+    for (const to of canvasTargets) {
       if (from.id === to.id) continue;
-      // Same category only (cross-category needs dedicated engines later).
-      if (from.category !== to.category) continue;
-      out.push({ from, to, slug: `${from.id}-to-${to.id}` });
+      out.push(conv(from, to, "image"));
     }
   }
+
+  // 2. HEIC -> jpg/jpeg/png/webp
+  for (const to of ["jpg", "jpeg", "png", "webp"]) {
+    out.push(conv(f.heic, f[to], "heic"));
+  }
+
+  // 3. PDF -> images, and images -> PDF
+  for (const to of ["jpg", "png"]) {
+    out.push(conv(f.pdf, f[to], "pdf2img"));
+  }
+  for (const from of ["jpg", "jpeg", "png", "webp"]) {
+    out.push(conv(f[from], f.pdf, "img2pdf"));
+  }
+
+  // 4. Audio -> audio (all pairs)
+  const audio = FORMATS.filter((x) => x.engineGroup === "audio");
+  for (const from of audio) {
+    for (const to of audio) {
+      if (from.id === to.id) continue;
+      out.push(conv(from, to, "audio"));
+    }
+  }
+
   return out;
 }
 
@@ -250,20 +273,27 @@ export const CONVERSION_BY_SLUG: Record<string, Conversion> = Object.fromEntries
   CONVERSIONS.map((c) => [c.slug, c]),
 );
 
+export function conversionsByCategory(category: Category): Conversion[] {
+  return CONVERSIONS.filter(
+    (c) => c.from.category === category || c.to.category === category,
+  );
+}
+
 /** Related conversions for internal linking (SEO clustering). */
 export function relatedConversions(slug: string, limit = 6): Conversion[] {
   const current = CONVERSION_BY_SLUG[slug];
   if (!current) return CONVERSIONS.slice(0, limit);
-  return CONVERSIONS.filter(
+  const sameEngine = CONVERSIONS.filter(
     (c) =>
       c.slug !== slug &&
       (c.from.id === current.from.id ||
         c.to.id === current.to.id ||
-        c.from.category === current.from.category),
-  ).slice(0, limit);
+        c.engine === current.engine),
+  );
+  return sameEngine.slice(0, limit);
 }
 
-/* ---------- SEO copy generation (templated, per-pair) ---------- */
+/* ---------- SEO copy generation ---------- */
 
 export function pageTitle(c: Conversion): string {
   return `Convert ${c.from.name} to ${c.to.name} — Free, Private, In-Browser | ZeroUpload`;
@@ -277,35 +307,29 @@ export function h1(c: Conversion): string {
   return `Convert ${c.from.name} to ${c.to.name}`;
 }
 
-/**
- * A unique intro paragraph built from BOTH formats' editorial data, so every
- * page reads differently. Used when no hand-written custom copy exists.
- */
 export function autoIntro(c: Conversion): string {
-  const reason =
-    c.to.pros[0]?.toLowerCase() ?? "a more useful format";
+  const reason = c.to.pros[0]?.toLowerCase() ?? "a more useful format";
   return `Converting ${c.from.name} to ${c.to.name} is a common task when you need ${reason}. ${c.from.whatIs} ${c.to.name}, on the other hand, gives you ${c.to.pros
     .slice(0, 2)
     .join(" and ")
     .toLowerCase()}. ZeroUpload performs this conversion entirely inside your browser, so your ${c.from.name} file is never uploaded to a server.`;
 }
 
-/** When-to-use guidance, unique per pair. */
 export function whenToConvert(c: Conversion): string {
   return `You should convert ${c.from.name} to ${c.to.name} when you want ${c.to.useCases[0]} but your source is ${c.from.name}. Typical situations include ${c.from.useCases
     .slice(0, 2)
-    .join(", ")}, where the destination platform expects ${c.to.name} instead.`;
+    .join(", ")}, where the destination expects ${c.to.name} instead.`;
 }
 
 export function faq(c: Conversion): { q: string; a: string }[] {
   return [
     {
       q: `How do I convert ${c.from.name} to ${c.to.name}?`,
-      a: `Drag your ${c.from.name} file into the box above (or click to choose it), and ZeroUpload instantly converts it to ${c.to.name} right inside your browser. Then download the result. No account, no waiting.`,
+      a: `Drop your ${c.from.name} file into the box above (or click to choose it), and ZeroUpload converts it to ${c.to.name} right inside your browser. Then download the result. No account, no waiting.`,
     },
     {
       q: `Is it safe to convert ${c.from.name} files here?`,
-      a: `Completely. ZeroUpload does the entire conversion on your own device using your browser. Your ${c.from.name} file is never uploaded to any server, so your data stays 100% private.`,
+      a: `Completely. ZeroUpload does the entire conversion on your own device. Your ${c.from.name} file is never uploaded to any server, so your data stays 100% private.`,
     },
     {
       q: `Does converting ${c.from.name} to ${c.to.name} cost anything?`,
@@ -317,7 +341,7 @@ export function faq(c: Conversion): { q: string; a: string }[] {
     },
     {
       q: `Will it work offline?`,
-      a: `Yes. Once the page has loaded, the ${c.from.name} to ${c.to.name} conversion works even with your internet disconnected, because everything happens locally.`,
+      a: `Yes. Once the page (and engine) has loaded, the ${c.from.name} to ${c.to.name} conversion works even with your internet disconnected, because everything happens locally.`,
     },
   ];
 }

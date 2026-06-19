@@ -76,3 +76,31 @@ Three failure modes were identified and patched in code:
   so they appear as sources, not targets. This is intentional and correct.
 - Animated GIFs convert only their first frame (Canvas limitation). Fine for the
   common "gif to png" intent; revisit if data shows demand for animation.
+
+
+---
+
+## V1 COMPLETE — Heavy WASM engines shipped (PR #2)
+
+ZeroUpload is now a full multi-format converter. **75 pages** build clean.
+
+### Engines (all 100% in-browser, no upload, $0)
+- **Canvas** — png/jpg/jpeg/webp (+ gif/bmp/svg sources). `src/lib/convertImage.ts`
+- **HEIC** — heic -> jpg/jpeg/png/webp via `heic-to` (libheif). `src/lib/engines/heic.ts`
+- **PDF** — pdf -> jpg/png (pdf.js) and jpg/jpeg/png/webp -> pdf (pdf-lib). `src/lib/engines/pdf.ts`
+- **Audio** — mp3/wav/ogg/m4a/flac/aac all-pairs via ffmpeg.wasm (single-thread, self-hosted core). `src/lib/engines/audio.ts`
+- Dispatcher: `src/lib/convert.ts` (lazy dynamic import per engine).
+
+### Architecture notes
+- Each `Conversion` now carries an `engine` field; the page template passes it to `Converter.tsx`, which dispatches via `convertFile()`.
+- `Converter.tsx` handles multi-output (PDF->images = one file per page), per-engine RAM limits (audio/pdf get bigger budgets; low-memory devices capped), and engine-loading states.
+- ffmpeg core (~32MB) is copied from node_modules to `public/ffmpeg/` by `scripts/copy-ffmpeg.mjs` (runs on `predev`/`prebuild`). It is **gitignored** — Cloudflare regenerates it on build. Served same-origin, cached via `public/_headers`.
+- No cross-origin isolation needed (single-thread core) — keeps fonts/ads working.
+
+### Honest caveats / on-device verification needed
+- Heavy engines (HEIC/PDF/audio) compile and bundle cleanly, but actual conversion can only be verified in a real browser. Recommend a quick on-device smoke test post-deploy: heic-to-jpg, pdf-to-jpg, mp3-to-wav.
+- Animated GIF still converts first frame only (Canvas limitation).
+- Audio first-use downloads ~32MB engine; messaged in UI and on the audio hub.
+
+### New hubs / nav
+- `/image-converter`, `/document-converter`, `/audio-converter` + header/footer links + homepage category cards.

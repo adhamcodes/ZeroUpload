@@ -81,7 +81,50 @@ Converting HEIC to JPG makes your iPhone photos open **anywhere**. And with
 ZeroUpload it happens on your own device — your personal photos are never
 uploaded to a stranger's server, which matters a great deal for private images.
 
-> Note: HEIC support is on our roadmap and ships behind a dedicated in-browser
-> decoder. Until then this guide explains the why; the tool will follow.
+Drop your HEIC files above (you can do several at once) and download standard
+JPGs in seconds. Nothing is uploaded, and it even works with your internet off.
+`,
+  "pdf-to-jpg": `
+### Turn PDF pages into images
+
+Sometimes you don't need the whole PDF — you need a **picture of a page** to
+post, embed, or text to someone. Converting PDF to JPG renders each page as an
+image you can use anywhere.
+
+ZeroUpload uses Mozilla's pdf.js to render your pages **inside your browser**, so
+even confidential documents (contracts, statements, IDs) never touch a server.
+Multi-page PDFs produce one image per page, ready to download.
+`,
+  "jpg-to-pdf": `
+### Combine photos and scans into a PDF
+
+PDF is the universal "send this as a document" format. Converting a JPG to PDF is
+perfect for **receipts, scanned forms, ID photos, and portfolios** — anything you
+want to look like a proper document rather than a loose image.
+
+ZeroUpload builds the PDF locally with pdf-lib. Your image is wrapped into a
+clean, single-page PDF on your device, then handed straight back to you. No
+upload, no watermark, no limit.
+`,
+  "mp3-to-wav": `
+### From compressed MP3 to lossless WAV
+
+WAV is the uncompressed, editing-friendly format that audio software loves.
+Converting MP3 to WAV won't *add back* detail the MP3 already discarded, but it
+gives you a **standard, uncompressed file** that every editor and tool accepts —
+ideal as an intermediate for production work.
+
+ZeroUpload runs **ffmpeg directly in your browser** to do this. Your audio is
+never uploaded. The engine downloads once from this site, then is cached.
+`,
+  "m4a-to-mp3": `
+### Make Apple M4A audio play everywhere
+
+M4A (AAC) sounds great and is efficient, but some older players, car stereos and
+apps still prefer MP3. Converting M4A to MP3 gives you a file that plays on
+**literally anything**.
+
+ZeroUpload converts it locally with ffmpeg.wasm — your voice memos, music and
+recordings never leave your device. Free, unlimited, private.
 `,
 };

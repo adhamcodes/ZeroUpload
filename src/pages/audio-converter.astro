@@ -3,12 +3,12 @@ import Layout from "../layouts/Layout.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
 import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 
-const cat = CATEGORIES.image;
-const list = conversionsByCategory("image").filter((c) => c.engine !== "img2pdf");
+const cat = CATEGORIES.audio;
+const list = conversionsByCategory("audio");
 
-const title = "Free Image Converter — Convert Images In Your Browser | ZeroUpload";
+const title = "Free Audio Converter — MP3, WAV, FLAC, M4A In Your Browser | ZeroUpload";
 const description =
-  "Convert PNG, JPG, WEBP, HEIC, SVG, GIF and BMP images instantly in your browser. 100% private — no upload, no signup, no limits. Files never leave your device.";
+  "Convert MP3, WAV, OGG, M4A, FLAC and AAC audio instantly in your browser with ffmpeg. 100% private — no upload, no signup, no limits. Your audio never leaves your device.";
 
 const jsonLd = [
   { "@context": "https://schema.org", "@type": "CollectionPage", name: title, description },
@@ -22,9 +22,13 @@ const jsonLd = [
   </section>
 
   <section class="mx-auto max-w-5xl px-6 py-8">
-    <h2 class="font-display text-2xl">All image conversions</h2>
+    <h2 class="font-display text-2xl">All audio conversions</h2>
     <div class="mt-8">
       <ConversionGrid conversions={list} />
     </div>
+    <p class="mt-6 text-xs text-stone/80">
+      Note: the audio engine downloads once (about 32 MB) from this site on first
+      use, then is cached by your browser. Audio still never leaves your device.
+    </p>
   </section>
 </Layout>

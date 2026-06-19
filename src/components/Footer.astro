@@ -1,8 +1,11 @@
 ---
-import { CONVERSIONS } from "../data/conversions";
+import { CONVERSIONS, CATEGORIES } from "../data/conversions";
 
-// Surface a handful of popular conversions in the footer for crawl depth.
-const popular = CONVERSIONS.slice(0, 8);
+// Surface a curated set of high-volume conversions in the footer for crawl depth.
+const slugs = ["heic-to-jpg", "png-to-jpg", "webp-to-png", "pdf-to-jpg", "jpg-to-pdf", "mp3-to-wav", "wav-to-mp3", "m4a-to-mp3"];
+const popular = slugs
+  .map((s) => CONVERSIONS.find((c) => c.slug === s))
+  .filter((c): c is NonNullable<typeof c> => Boolean(c));
 const year = new Date().getFullYear();
 ---
 
@@ -20,7 +23,18 @@ const year = new Date().getFullYear();
       <div class="flex gap-12">
         <div>
           <p class="text-xs font-medium uppercase tracking-wider text-stone">
-            Popular conversions
+            Converters
+          </p>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li><a class="text-stone transition-colors hover:text-ink" href={`/${CATEGORIES.image.slug}`}>Image Converter</a></li>
+            <li><a class="text-stone transition-colors hover:text-ink" href={`/${CATEGORIES.document.slug}`}>PDF Converter</a></li>
+            <li><a class="text-stone transition-colors hover:text-ink" href={`/${CATEGORIES.audio.slug}`}>Audio Converter</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-stone">
+            Popular
           </p>
           <ul class="mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
             {

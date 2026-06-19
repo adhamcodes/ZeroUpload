@@ -1,13 +1,26 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import ConversionGrid from "../components/ConversionGrid.astro";
 import { CONVERSIONS, CATEGORIES } from "../data/conversions";
 
 const title =
   "ZeroUpload — Convert Files 100% in Your Browser. Zero Uploads, Zero Limits.";
 const description =
-  "Convert images privately and instantly. Files never leave your device — no upload, no signup, no limits. Works even offline. The private file converter.";
+  "Convert images, PDFs and audio privately and instantly. Files never leave your device — no upload, no signup, no limits. Works even offline. The private file converter.";
 
-const featured = CONVERSIONS.slice(0, 12);
+const featuredSlugs = [
+  "heic-to-jpg", "png-to-jpg", "webp-to-png", "svg-to-png",
+  "pdf-to-jpg", "jpg-to-pdf", "mp3-to-wav", "m4a-to-mp3",
+];
+const featured = featuredSlugs
+  .map((s) => CONVERSIONS.find((c) => c.slug === s))
+  .filter((c): c is NonNullable<typeof c> => Boolean(c));
+
+const categoryCards = [
+  { ...CATEGORIES.image, blurb: "PNG, JPG, WEBP, HEIC, SVG, GIF, BMP" },
+  { ...CATEGORIES.document, blurb: "PDF to image · image to PDF" },
+  { ...CATEGORIES.audio, blurb: "MP3, WAV, OGG, M4A, FLAC, AAC" },
+];
 
 const jsonLd = [
   {
@@ -45,7 +58,7 @@ const jsonLd = [
         href={`/${CATEGORIES.image.slug}`}
         class="rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
       >
-        Convert an image
+        Convert a file
       </a>
       <a
         href="#how"
@@ -56,28 +69,31 @@ const jsonLd = [
     </div>
   </section>
 
+  <!-- CATEGORY CARDS -->
+  <section class="mx-auto max-w-5xl px-6 py-8">
+    <div class="grid gap-4 sm:grid-cols-3">
+      {
+        categoryCards.map((cat) => (
+          <a
+            href={`/${cat.slug}`}
+            class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-7 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+          >
+            <p class="font-display text-xl text-ink transition-colors group-hover:text-accent">
+              {cat.title}
+            </p>
+            <p class="mt-2 text-sm text-stone">{cat.blurb}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
   <!-- POPULAR CONVERSIONS -->
   <section class="mx-auto max-w-5xl px-6 py-12">
     <h2 class="font-display text-2xl">Popular conversions</h2>
     <p class="mt-1 text-stone">Pick a conversion — every one runs on your device.</p>
-    <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {
-        featured.map((c) => (
-          <a
-            href={`/${c.slug}`}
-            class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
-          >
-            <p class="font-display text-lg text-ink">
-              {c.from.name}{" "}
-              <span class="text-stone transition-colors group-hover:text-accent">
-                &rarr;
-              </span>{" "}
-              {c.to.name}
-            </p>
-            <p class="mt-1 text-xs text-stone">Convert {c.from.name} to {c.to.name}</p>
-          </a>
-        ))
-      }
+    <div class="mt-8">
+      <ConversionGrid conversions={featured} />
     </div>
   </section>
 
