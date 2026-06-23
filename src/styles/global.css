@@ -96,6 +96,11 @@ body {
   100% { opacity: 1; }
 }
 
+/* ATELIER animation utilities (reduced-motion-guarded below) */
+.animate-dropzone-glow { animation: dropzone-glow 4s ease-in-out infinite; }
+.animate-shimmer { animation: shimmer 0.9s ease-out 1; }
+.animate-wifi-pulse { animation: wifi-pulse 3s ease-in-out infinite; }
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-dropzone-glow,

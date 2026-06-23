@@ -224,6 +224,21 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
           working ? "cursor-progress" : "",
         ].join(" ")}
       >
+        {/* On-device glow — Atelier signature */}
+        <div
+          aria-hidden="true"
+          className="animate-dropzone-glow pointer-events-none absolute inset-0 z-0 rounded-[var(--radius-xl)]"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 45%, var(--color-accent-soft), transparent 70%)",
+          }}
+        />
+        {status === "done" && (
+          <div
+            aria-hidden="true"
+            className="animate-shimmer pointer-events-none absolute inset-0 z-20 rounded-[var(--radius-xl)] bg-gradient-to-r from-transparent via-paper/70 to-transparent"
+          />
+        )}
         <input
           ref={inputRef}
           type="file"
@@ -234,7 +249,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
         />
 
         {working ? (
-          <div className="flex flex-col items-center gap-3">
+          <div className="relative z-10 flex flex-col items-center gap-3">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-mist border-t-accent" />
             <p className="text-sm font-medium text-ink">{statusLabel}</p>
             {progress && progress.total > 1 && (
@@ -242,7 +257,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
             )}
           </div>
         ) : (
-          <>
+          <div className="relative z-10 flex flex-col items-center">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 16V4" />
@@ -262,12 +277,12 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
                 {prettyBytes(device.maxFileBytes)} each.
               </p>
             )}
-          </>
+          </div>
         )}
       </div>
 
       <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg className="animate-wifi-pulse" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
         </svg>
         Nothing is uploaded. Your files never leave this browser.
@@ -292,7 +307,8 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-ink">{item.result.filename}</p>
                 <p className="text-xs text-stone">
-                  {prettyBytes(item.result.blob.size)} · done in {item.result.ms}ms
+                  {prettyBytes(item.result.blob.size)} ·{" "}
+                  <span className="font-mono">done in {item.result.ms}ms</span>
                 </p>
               </div>
               <a
