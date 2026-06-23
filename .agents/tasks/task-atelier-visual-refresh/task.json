@@ -1,0 +1,7 @@
+{
+  "task_id": "task-atelier-visual-refresh",
+  "task_description": "Apply the ATELIER visual refresh across the ZeroUpload site: new oklch design tokens (Porcelain light + Vault dark palettes), Geist/Geist Mono fonts, brass accent, component upgrades (glow drop zone, quick-chips, icon tool cards, hover-lift, dark mode toggle), and update the brand skill to document Atelier as the source of truth.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

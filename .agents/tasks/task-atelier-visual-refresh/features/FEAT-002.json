@@ -1,0 +1,34 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "ATELIER component upgrades: Header (dark-mode toggle), Footer (refined), Converter (on-device glow + mono timing + shimmer), FormatPicker (quick-chips row), ToolGrid (line-icons + hover-lift + brass underline), ConversionGrid (hover-lift), and all hub/homepage pages (refined hero, atmosphere, mono accents). Also add the 'offline-proof' animated badge.",
+  "status": "pending",
+  "steps": [
+    "In src/components/Header.astro: Add a dark-mode toggle button (sun/moon icon) at the end of the nav. Add a small inline <script> that reads localStorage('theme') on page load and sets [data-theme] on <html>. The toggle switches between 'light' and 'dark', persists to localStorage, and updates the attribute. Also add a mobile hamburger menu for sm: breakpoint (the nav is currently hidden on mobile with `hidden sm:flex`).",
+    "In src/components/Footer.astro: Add font-mono to the copyright year. Add a subtle brass accent on the 'ZeroUpload' brand name hover. Keep the structure clean.",
+    "In src/components/Converter.tsx: (a) Add a soft pulsing inner glow to the idle drop zone using a CSS animation (radial gradient that subtly pulses). Use a class with @keyframes defined either inline or in global.css. (b) On success (status==='done'), show a brief shimmer animation across the drop zone. (c) In the result cards, format the 'done in N ms' text using font-mono class. (d) Wrap the glow/shimmer animations in a prefers-reduced-motion media query check (disable if reduce). (e) Add the 'living offline-proof pill': near the privacy reassurance text, animate a wifi icon that periodically flashes to wifi-off (subtle, 3-4s cycle). Respect prefers-reduced-motion.",
+    "In src/components/FormatPicker.tsx: Add a 'quick-chips' row below the picker. Define popular conversion shortcuts as small pill buttons: for image hub (PNG->JPG, HEIC->JPG, WEBP->PNG), for PDF hub (PDF->JPG, JPG->PDF), for audio (MP3->WAV, M4A->MP3). Accept an optional `quickChips` prop (array of {from, to, label}). When a chip is clicked, navigate to /{from}-to-{to}. Style chips with rounded-full, border, small text, hover:border-brass transition.",
+    "In src/components/ToolGrid.astro: (a) Add a bespoke SVG line-icon for each tool card. Accept an optional `icon` field in the Tool interface (an SVG string or icon name). For now, add inline SVG icons matching: merge (two-arrows-merge), split (scissors), compress (minimize), rotate (rotate-cw), resize (maximize), crop (crop), images (image-stack), extract (file-text). (b) Add hover-lift effect: on hover, translateY(-2px) + shadow-lifted. (c) Add a brass underline on hover: a small 2px border-bottom or pseudo-element in brass color that appears on hover with transition.",
+    "In src/components/ConversionGrid.astro: Add the same hover-lift effect as ToolGrid. Add font-mono to the arrow character between format names for that technical feel.",
+    "In src/pages/index.astro: (a) Refine the hero with a subtle background atmosphere - a very faint radial gradient (canvas->paper gradient or soft warm glow behind the headline). No blobs. (b) Use font-mono for technical bits like format names in category cards. (c) Add brass color to the dot in the privacy badge. (d) In the 'How it works' section, use Pine-colored icons and add brass accents to numbers/counters if any.",
+    "In src/pages/image-converter.astro, src/pages/pdf.astro, src/pages/audio-converter.astro, src/pages/text.astro: (a) Pass quickChips prop to FormatPicker with appropriate popular conversions for each hub. (b) Pass icon data to ToolGrid tools. (c) Use font-mono for technical format references in descriptions.",
+    "In src/styles/global.css: Add the @keyframes for drop-zone-glow (soft pulse), shimmer (left-to-right sweep), and hover-lift transition utility class. Add prefers-reduced-motion media query that disables/reduces animations. Add utility classes for the offline-proof pill animation.",
+    "Run `npm run build` to verify everything compiles."
+  ],
+  "acceptance_criteria": [
+    "Header has a functioning dark-mode toggle that persists choice in localStorage and sets [data-theme] on <html>",
+    "Converter drop zone has a visible soft inner glow animation in idle state",
+    "Converter result cards show timing in monospace font",
+    "FormatPicker shows quick-chips when the prop is provided",
+    "ToolGrid cards have hover-lift + brass underline + SVG icons",
+    "ConversionGrid cards have hover-lift effect",
+    "Homepage hero has subtle atmospheric background",
+    "All animations respect prefers-reduced-motion",
+    "`npm run build` succeeds"
+  ],
+  "verification": [
+    "Run `npm run build` in /projects/sandbox/ZeroUpload and confirm exit code 0"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

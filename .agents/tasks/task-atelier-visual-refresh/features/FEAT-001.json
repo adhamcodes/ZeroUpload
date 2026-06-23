@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "ATELIER foundation: replace design tokens with oklch Porcelain palette, add Geist + Geist Mono fonts, add brass accent token, and update Layout.astro font loading. This is the base layer all subsequent features depend on.",
+  "status": "in_progress",
+  "steps": [
+    "Create a new git branch `design/atelier-tokens` from `main` (not from the current feature branch).",
+    "Replace the @theme block in src/styles/global.css with the ATELIER Porcelain tokens using oklch values: --color-canvas (approx #F5F3EC), --color-paper (#FFFFFF), --color-ink (#17150F), --color-stone (#6E685C), --color-mist (#E7E2D6). Keep --color-accent but repoint it to Pine #15543E in oklch. Keep --color-accent-soft repointed to #E4EDE7. Add --color-brass: oklch value for #B98A3E. Add --color-brass-soft: a subtle brass tint for hover backgrounds. Keep --color-success and --color-danger. Update --font-sans to use Geist as primary (\"Geist\", ui-sans-serif, system-ui, -apple-system, sans-serif). Add --font-mono: \"Geist Mono\", ui-monospace, monospace. Keep --font-display as Fraunces. Update --shadow-luxe to use oklch-based shadow. Add --shadow-lifted for hover-lift cards: a slightly elevated shadow.",
+    "In src/layouts/Layout.astro, update the Google Fonts <link> to include Geist (weights 400,500,600) and Geist Mono (weight 400,500) in addition to existing Fraunces. Use the Google Fonts URL format: family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500. Keep Fraunces as-is.",
+    "In src/styles/global.css, add a [data-theme=\"dark\"] section that overrides the tokens with Vault palette values: --color-canvas: oklch for #14130F, add --color-surface: oklch for #1C1B16 (new token for dark elevated surfaces), --color-paper: oklch for #1C1B16, --color-ink: oklch for #F2EFE6, --color-stone: oklch for lighter muted text, --color-mist: oklch for subtle dark borders, --color-accent: oklch for mint glow #5FD0A0, --color-accent-soft: a dark-appropriate tint, --color-brass stays same, --shadow-luxe: reduce/remove shadows in dark (borders over shadows), --shadow-lifted: minimal in dark. Also add --color-surface token to the light @theme (same as --color-paper for light mode).",
+    "Run `npm run build` to verify the token changes compile correctly and all pages still render."
+  ],
+  "acceptance_criteria": [
+    "src/styles/global.css contains all ATELIER Porcelain tokens in oklch format within @theme",
+    "A [data-theme=\"dark\"] block exists with Vault overrides",
+    "--color-brass token exists and is available as bg-brass, text-brass utilities",
+    "--font-mono token exists referencing Geist Mono",
+    "--color-surface token exists for both light and dark",
+    "Layout.astro loads Geist and Geist Mono from Google Fonts",
+    "`npm run build` succeeds with no errors"
+  ],
+  "verification": [
+    "Run `npm run build` in /projects/sandbox/ZeroUpload and confirm exit code 0 with no errors"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
