@@ -34,6 +34,7 @@
   --font-mono: "Geist Mono", ui-monospace, monospace;
 
   /* Radius / shadow — soft, premium */
+  --radius-md: 0.75rem;
   --radius-xl: 1.25rem;
   --shadow-luxe: 0 1px 2px oklch(15% 0.02 70 / 0.04),
     0 12px 40px -12px oklch(15% 0.02 70 / 0.10);

@@ -71,7 +71,7 @@ export default function FormatPicker({
               id="format-from"
               value={from}
               onChange={(e) => handleFromChange(e.target.value)}
-              className="w-full rounded-[var(--radius-md)] border border-mist bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-brass"
+              className="w-full rounded-[var(--radius-md)] border border-mist bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-accent"
             >
               {sources.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -107,7 +107,7 @@ export default function FormatPicker({
               id="format-to"
               value={to}
               onChange={(e) => handleToChange(e.target.value)}
-              className="w-full rounded-[var(--radius-md)] border border-mist bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-brass"
+              className="w-full rounded-[var(--radius-md)] border border-mist bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-accent"
             >
               {targets.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -126,7 +126,7 @@ export default function FormatPicker({
         {/* Convert button */}
         <button
           onClick={handleConvert}
-          className="mt-4 w-full rounded-[var(--radius-md)] bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90"
+          className="mt-4 w-full rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-canvas transition-colors hover:opacity-90"
         >
           Convert
         </button>
