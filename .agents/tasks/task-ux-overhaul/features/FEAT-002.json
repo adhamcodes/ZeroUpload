@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Custom dropdown component (CustomSelect.tsx) replacing ALL native <select> elements across the app. Polished, accessible, with format icons, keyboard navigation, full ARIA. This is the single biggest 'cheap tell' fix.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Create src/components/CustomSelect.tsx - a React component that replaces native <select>. Props: options (array of {id, name}), value, onChange, label, id. Implementation: a button trigger showing current selection that opens a listbox overlay. Styling: rounded-[var(--radius-xl)] border border-mist bg-canvas, with the open dropdown using bg-paper border border-mist shadow-[var(--shadow-lifted)]. Selected option highlighted with bg-accent-soft. Options show format name in a clean sans font.",
     "Implement full keyboard accessibility in CustomSelect.tsx: ArrowUp/ArrowDown to navigate options, Enter/Space to select, Escape to close, Home/End to jump. Tab moves focus away (closing the dropdown). Clicking outside closes it. Use aria-expanded, aria-activedescendant, role='listbox', role='option', aria-selected. Focus management: when opened, focus stays on the trigger button; aria-activedescendant points to the visually-focused option.",

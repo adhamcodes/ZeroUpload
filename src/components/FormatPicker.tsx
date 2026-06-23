@@ -1,8 +1,10 @@
-import { useState, useId } from "react";
+import { useState } from "react";
+import CustomSelect, { type SelectOption } from "./CustomSelect";
 
 interface FormatOption {
   id: string;
   name: string;
+  category?: "image" | "document" | "audio";
 }
 
 interface Props {
@@ -24,11 +26,29 @@ export default function FormatPicker({
   const [to, setTo] = useState(defaultTo ?? targets[0]?.id ?? "");
   const [message, setMessage] = useState("");
 
-  const id = useId();
-  const fromId = `${id}-from`;
-  const toId = `${id}-to`;
-
   const sameFormat = from === to;
+
+  const sourceOptions: SelectOption[] = sources.map((s) => ({
+    id: s.id,
+    name: s.name,
+    category: s.category,
+  }));
+
+  const targetOptions: SelectOption[] = targets.map((t) => ({
+    id: t.id,
+    name: t.name,
+    category: t.category,
+  }));
+
+  function handleFromChange(value: string) {
+    setFrom(value);
+    setMessage("");
+  }
+
+  function handleToChange(value: string) {
+    setTo(value);
+    setMessage("");
+  }
 
   function handleConvert() {
     if (!from || !to || sameFormat) return;
@@ -46,24 +66,13 @@ export default function FormatPicker({
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
         {/* From dropdown */}
         <div className="w-full sm:flex-1">
-          <label
-            htmlFor={fromId}
-            className="mb-1.5 block font-display text-sm font-medium text-ink"
-          >
-            From
-          </label>
-          <select
-            id={fromId}
+          <CustomSelect
+            options={sourceOptions}
             value={from}
-            onChange={(e) => { setFrom(e.target.value); setMessage(""); }}
-            className="w-full rounded-[var(--radius-xl)] border border-mist bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-accent"
-          >
-            {sources.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            onChange={handleFromChange}
+            label="From"
+            id="format-from"
+          />
         </div>
 
         {/* Arrow */}
@@ -86,24 +95,13 @@ export default function FormatPicker({
 
         {/* To dropdown */}
         <div className="w-full sm:flex-1">
-          <label
-            htmlFor={toId}
-            className="mb-1.5 block font-display text-sm font-medium text-ink"
-          >
-            To
-          </label>
-          <select
-            id={toId}
+          <CustomSelect
+            options={targetOptions}
             value={to}
-            onChange={(e) => { setTo(e.target.value); setMessage(""); }}
-            className="w-full rounded-[var(--radius-xl)] border border-mist bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-accent"
-          >
-            {targets.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+            onChange={handleToChange}
+            label="To"
+            id="format-to"
+          />
         </div>
 
         {/* Convert button */}
