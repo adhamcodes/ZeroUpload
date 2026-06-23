@@ -63,7 +63,7 @@
   --color-accent: oklch(78% 0.14 165);
   --color-accent-soft: oklch(20% 0.06 165);
   --color-brass: oklch(66% 0.12 70);
-  --color-brass-soft: oklch(22% 0.04 165);
+  --color-brass-soft: oklch(22% 0.04 70);
   --color-success: oklch(78% 0.14 165);
   --color-danger: oklch(60% 0.18 25);
 
@@ -170,7 +170,7 @@ body {
 .surface-elevated {
   background-color: var(--color-paper);
   box-shadow: var(--shadow-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
 }
 
 .surface-raised {

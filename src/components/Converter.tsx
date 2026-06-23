@@ -173,7 +173,7 @@ function FileCard({ entry }: { entry: FileEntry }) {
   return (
     <div
       className={[
-        "animate-slide-up flex items-center gap-4 rounded-[var(--radius-xl)] border border-mist bg-paper p-4",
+        "relative overflow-hidden animate-slide-up flex items-center gap-4 rounded-[var(--radius-xl)] border border-mist bg-paper p-4",
         entry.status === "converting" ? "ring-2 ring-accent/30" : "",
       ].join(" ")}
     >
@@ -219,7 +219,9 @@ function FileCard({ entry }: { entry: FileEntry }) {
 
 /* ------------ ResultCard Component ------------ */
 function ResultCard({ item }: { item: DoneItem }) {
-  const savings = ((item.originalSize - item.result.blob.size) / item.originalSize) * 100;
+  const savings = item.originalSize > 0
+    ? ((item.originalSize - item.result.blob.size) / item.originalSize) * 100
+    : 0;
   const isSaving = savings > 0;
   const resultUrl = item.result.blob.type.startsWith("image/")
     ? item.url
@@ -279,6 +281,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
   const [device, setDevice] = useState<DeviceProfile | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const convertingRef = useRef(false);
+  const pendingQueueRef = useRef<FileEntry[]>([]);
 
   useEffect(() => {
     setDevice(detectDevice(engine));
@@ -379,6 +382,15 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
 
       convertingRef.current = false;
       setIsConverting(false);
+
+      // Drain pending queue: if more entries arrived during this batch, process them
+      if (pendingQueueRef.current.length > 0) {
+        const pending = pendingQueueRef.current;
+        pendingQueueRef.current = [];
+        convertingRef.current = true;
+        setIsConverting(true);
+        await processBatch(pending, d);
+      }
     },
     [engine, to],
   );
@@ -408,6 +420,9 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
         convertingRef.current = true;
         setIsConverting(true);
         await processBatch(newEntries, d);
+      } else {
+        // Batch is already running; queue new entries for processing after current batch
+        pendingQueueRef.current = [...pendingQueueRef.current, ...newEntries];
       }
     },
     [engine, to, device, validateBatch, createEntries, processBatch],
