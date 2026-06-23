@@ -3,47 +3,45 @@ import Layout from "../layouts/Layout.astro";
 import FormatPicker from "../components/FormatPicker.tsx";
 import ToolGrid from "../components/ToolGrid.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
-import { conversionsByCategory, CATEGORIES } from "../data/conversions";
+import { conversionsByCategory } from "../data/conversions";
 
-const cat = CATEGORIES.image;
-const list = conversionsByCategory("image").filter((c) => c.engine !== "img2pdf");
+const list = conversionsByCategory("document");
 
 const sources = [
-  { id: "png", name: "PNG" },
+  { id: "pdf", name: "PDF" },
   { id: "jpg", name: "JPG" },
   { id: "jpeg", name: "JPEG" },
+  { id: "png", name: "PNG" },
   { id: "webp", name: "WEBP" },
-  { id: "gif", name: "GIF" },
-  { id: "bmp", name: "BMP" },
-  { id: "svg", name: "SVG" },
-  { id: "heic", name: "HEIC" },
 ];
 
 const targets = [
-  { id: "png", name: "PNG" },
+  { id: "pdf", name: "PDF" },
   { id: "jpg", name: "JPG" },
-  { id: "jpeg", name: "JPEG" },
-  { id: "webp", name: "WEBP" },
+  { id: "png", name: "PNG" },
 ];
 
 const tools = [
-  { name: "Compress Image", description: "Reduce image file size", href: "#", comingSoon: true },
-  { name: "Resize Image", description: "Change image dimensions", href: "#", comingSoon: true },
-  { name: "Crop Image", description: "Crop to a specific area", href: "#", comingSoon: true },
-  { name: "Rotate/Flip Image", description: "Rotate or mirror an image", href: "#", comingSoon: true },
+  { name: "Merge PDF", description: "Combine multiple PDFs into one", href: "#", comingSoon: true },
+  { name: "Split PDF", description: "Split a PDF into separate pages", href: "#", comingSoon: true },
+  { name: "Compress PDF", description: "Reduce PDF file size", href: "#", comingSoon: true },
+  { name: "Rotate PDF", description: "Rotate PDF pages", href: "#", comingSoon: true },
+  { name: "Reorder Pages", description: "Rearrange pages in a PDF", href: "#", comingSoon: true },
+  { name: "Images to PDF", description: "Combine images into a PDF", href: "/jpg-to-pdf", comingSoon: false },
+  { name: "PDF to Images", description: "Extract PDF pages as images", href: "/pdf-to-jpg", comingSoon: false },
 ];
 
-const title = "Free Image Converter — Convert Images In Your Browser | ZeroUpload";
+const title = "Free PDF Tools — Convert, Merge, Split PDFs In Your Browser | ZeroUpload";
 const description =
-  "Convert PNG, JPG, WEBP, HEIC, SVG, GIF and BMP images instantly in your browser. 100% private — no upload, no signup, no limits. Files never leave your device.";
+  "Convert PDF to images, images to PDF, and more. 100% private — no upload, no signup, no limits. Your documents never leave your device.";
 
 const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: cat.title,
+    name: "PDF Tools",
     description,
-    url: new URL("/image-converter", Astro.site).href,
+    url: new URL("/pdf", Astro.site).href,
   },
 ];
 ---
@@ -59,11 +57,11 @@ const jsonLd = [
     </span>
 
     <h1 class="mt-6 font-display text-4xl tracking-tight sm:text-5xl">
-      {cat.title}
+      PDF Tools
     </h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
-      Your files are nobody's business. Convert images instantly, entirely in
-      your browser. No upload, no server, no limits.
+      Your files are nobody's business. Convert, combine and extract PDFs
+      entirely in your browser — no upload, no server, no limits.
     </p>
   </section>
 
@@ -73,14 +71,14 @@ const jsonLd = [
       client:load
       sources={sources}
       targets={targets}
-      defaultFrom="png"
+      defaultFrom="pdf"
       defaultTo="jpg"
     />
   </section>
 
   <!-- Tool Grid -->
   <section class="mx-auto max-w-5xl px-6 py-8">
-    <h2 class="font-display text-2xl">Image tools</h2>
+    <h2 class="font-display text-2xl">PDF tools</h2>
     <p class="mt-1 text-stone">Everything runs on your device.</p>
     <div class="mt-8">
       <ToolGrid tools={tools} />
@@ -89,7 +87,7 @@ const jsonLd = [
 
   <!-- All Conversions -->
   <section class="mx-auto max-w-5xl px-6 py-8">
-    <h2 class="font-display text-2xl">All image conversions</h2>
+    <h2 class="font-display text-2xl">All PDF conversions</h2>
     <div class="mt-8">
       <ConversionGrid conversions={list} />
     </div>

@@ -1,26 +1,83 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import FormatPicker from "../components/FormatPicker.tsx";
+import ToolGrid from "../components/ToolGrid.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
 import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 
 const cat = CATEGORIES.audio;
 const list = conversionsByCategory("audio");
 
+const formats = [
+  { id: "mp3", name: "MP3" },
+  { id: "wav", name: "WAV" },
+  { id: "ogg", name: "OGG" },
+  { id: "m4a", name: "M4A" },
+  { id: "flac", name: "FLAC" },
+  { id: "aac", name: "AAC" },
+];
+
+const tools = [
+  { name: "Trim/Cut Audio", description: "Cut a section from an audio file", href: "#", comingSoon: true },
+  { name: "Merge Audio", description: "Combine multiple audio files", href: "#", comingSoon: true },
+  { name: "Compress Audio", description: "Reduce audio file size", href: "#", comingSoon: true },
+];
+
 const title = "Free Audio Converter — MP3, WAV, FLAC, M4A In Your Browser | ZeroUpload";
 const description =
   "Convert MP3, WAV, OGG, M4A, FLAC and AAC audio instantly in your browser with ffmpeg. 100% private — no upload, no signup, no limits. Your audio never leaves your device.";
 
 const jsonLd = [
-  { "@context": "https://schema.org", "@type": "CollectionPage", name: title, description },
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: cat.title,
+    description,
+    url: new URL("/audio-converter", Astro.site).href,
+  },
 ];
 ---
 
 <Layout title={title} description={description} jsonLd={jsonLd}>
-  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
-    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
-    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
+  <!-- Hero -->
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-8 text-center">
+    <span
+      class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      100% private · nothing is ever uploaded
+    </span>
+
+    <h1 class="mt-6 font-display text-4xl tracking-tight sm:text-5xl">
+      {cat.title}
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Your files are nobody's business. Convert audio files locally with ffmpeg
+      running in your browser. Your media never leaves your machine.
+    </p>
   </section>
 
+  <!-- Format Picker -->
+  <section class="mx-auto max-w-2xl px-6 py-8">
+    <FormatPicker
+      client:load
+      sources={formats}
+      targets={formats}
+      defaultFrom="mp3"
+      defaultTo="wav"
+    />
+  </section>
+
+  <!-- Tool Grid -->
+  <section class="mx-auto max-w-5xl px-6 py-8">
+    <h2 class="font-display text-2xl">Audio tools</h2>
+    <p class="mt-1 text-stone">Everything runs on your device.</p>
+    <div class="mt-8">
+      <ToolGrid tools={tools} />
+    </div>
+  </section>
+
+  <!-- All Conversions -->
   <section class="mx-auto max-w-5xl px-6 py-8">
     <h2 class="font-display text-2xl">All audio conversions</h2>
     <div class="mt-8">
