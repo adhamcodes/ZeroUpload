@@ -8,6 +8,24 @@ import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 const cat = CATEGORIES.audio;
 const list = conversionsByCategory("audio");
 
+const sources = [
+  { id: "mp3", name: "MP3" },
+  { id: "wav", name: "WAV" },
+  { id: "ogg", name: "OGG" },
+  { id: "m4a", name: "M4A" },
+  { id: "flac", name: "FLAC" },
+  { id: "aac", name: "AAC" },
+];
+
+const targets = [
+  { id: "mp3", name: "MP3" },
+  { id: "wav", name: "WAV" },
+  { id: "ogg", name: "OGG" },
+  { id: "m4a", name: "M4A" },
+  { id: "flac", name: "FLAC" },
+  { id: "aac", name: "AAC" },
+];
+
 const quickChips = [
   { from: "mp3", to: "wav", label: "MP3 to WAV" },
   { from: "m4a", to: "mp3", label: "M4A to MP3" },
@@ -52,7 +70,7 @@ const jsonLd = [
     </span>
     <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
-    <FormatPicker client:load quickChips={quickChips} />
+    <FormatPicker client:load sources={sources} targets={targets} defaultFrom="mp3" defaultTo="wav" quickChips={quickChips} />
   </section>
 
   <section class="mx-auto max-w-5xl px-6 py-8">

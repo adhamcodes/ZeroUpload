@@ -8,6 +8,24 @@ import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 const cat = CATEGORIES.image;
 const list = conversionsByCategory("image").filter((c) => c.engine !== "img2pdf");
 
+const sources = [
+  { id: "png", name: "PNG" },
+  { id: "jpg", name: "JPG" },
+  { id: "jpeg", name: "JPEG" },
+  { id: "webp", name: "WEBP" },
+  { id: "gif", name: "GIF" },
+  { id: "bmp", name: "BMP" },
+  { id: "svg", name: "SVG" },
+  { id: "heic", name: "HEIC" },
+];
+
+const targets = [
+  { id: "png", name: "PNG" },
+  { id: "jpg", name: "JPG" },
+  { id: "jpeg", name: "JPEG" },
+  { id: "webp", name: "WEBP" },
+];
+
 const quickChips = [
   { from: "png", to: "jpg", label: "PNG to JPG" },
   { from: "heic", to: "jpg", label: "HEIC to JPG" },
@@ -64,7 +82,7 @@ const jsonLd = [
     </span>
     <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
-    <FormatPicker client:load quickChips={quickChips} />
+    <FormatPicker client:load sources={sources} targets={targets} defaultFrom="png" defaultTo="jpg" quickChips={quickChips} />
   </section>
 
   <section class="mx-auto max-w-5xl px-6 py-8">

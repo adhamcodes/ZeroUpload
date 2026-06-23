@@ -2,6 +2,16 @@
 import Layout from "../layouts/Layout.astro";
 import FormatPicker from "../components/FormatPicker.tsx";
 
+const sources = [
+  { id: "jpg", name: "JPG" },
+  { id: "png", name: "PNG" },
+  { id: "pdf", name: "PDF" },
+];
+
+const targets = [
+  { id: "txt", name: "TXT" },
+];
+
 const quickChips = [
   { from: "jpg", to: "txt", label: "JPG to Text" },
   { from: "png", to: "txt", label: "PNG to Text" },
@@ -26,7 +36,7 @@ const jsonLd = [
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
       Extract text from images using OCR, entirely in your browser. No upload, no server.
     </p>
-    <FormatPicker client:load quickChips={quickChips} />
+    <FormatPicker client:load sources={sources} targets={targets} defaultFrom="jpg" defaultTo="txt" comingSoon={true} quickChips={quickChips} />
   </section>
 
   <section class="mx-auto max-w-3xl px-6 py-12 text-center">
