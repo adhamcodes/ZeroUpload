@@ -1,5 +1,5 @@
 ---
-import { CONVERSIONS, CATEGORIES } from "../data/conversions";
+import { CONVERSIONS } from "../data/conversions";
 
 // Surface a curated set of high-volume conversions in the footer for crawl depth.
 const slugs = ["heic-to-jpg", "png-to-jpg", "webp-to-png", "pdf-to-jpg", "jpg-to-pdf", "mp3-to-wav", "wav-to-mp3", "m4a-to-mp3"];
@@ -26,9 +26,10 @@ const year = new Date().getFullYear();
             Converters
           </p>
           <ul class="mt-3 space-y-2 text-sm">
-            <li><a class="text-stone transition-colors hover:text-ink" href={`/${CATEGORIES.image.slug}`}>Image Converter</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href={`/${CATEGORIES.document.slug}`}>PDF Converter</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href={`/${CATEGORIES.audio.slug}`}>Audio Converter</a></li>
+            <li><a class="text-stone transition-colors hover:text-ink" href="/image-converter">Image Converter</a></li>
+            <li><a class="text-stone transition-colors hover:text-ink" href="/pdf">PDF Converter</a></li>
+            <li><a class="text-stone transition-colors hover:text-ink" href="/audio-converter">Audio Converter</a></li>
+            <li><a class="text-stone transition-colors hover:text-ink" href="/text">Text (OCR)</a></li>
           </ul>
         </div>
 

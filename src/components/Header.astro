@@ -1,5 +1,4 @@
 ---
-import { CATEGORIES } from "../data/conversions";
 ---
 
 <header class="border-b border-mist/70">
@@ -32,17 +31,21 @@ import { CATEGORIES } from "../data/conversions";
     </a>
 
     <nav class="hidden items-center gap-7 text-sm text-stone sm:flex">
-      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.image.slug}`}>
+      <a class="transition-colors hover:text-ink" href="/image-converter">
         Image
       </a>
-      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.document.slug}`}>
+      <a class="transition-colors hover:text-ink" href="/pdf">
         PDF
       </a>
-      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.audio.slug}`}>
+      <a class="transition-colors hover:text-ink" href="/audio-converter">
         Audio
       </a>
-      <a class="transition-colors hover:text-ink" href="/articles">Articles</a>
-      <a class="transition-colors hover:text-ink" href="/#privacy">Privacy</a>
+      <a class="transition-colors hover:text-ink" href="/text">
+        Text
+      </a>
+      <a class="transition-colors hover:text-ink" href="/articles">
+        Articles
+      </a>
     </nav>
   </div>
 </header>

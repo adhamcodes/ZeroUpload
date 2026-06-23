@@ -1,0 +1,7 @@
+{
+  "task_id": "task-pillar-0-ux-hubs",
+  "task_description": "Build the four category UX hub pages for ZeroUpload V2: /pdf, /image-converter (upgrade), /audio-converter (upgrade), /text. Each hub features a 'from -> to' format dropdown picker and a grid of category-specific tools. Hubs funnel users to existing per-pair SEO pages. Design follows Quiet Luxury brand system. Navigation updated to link all hubs.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}

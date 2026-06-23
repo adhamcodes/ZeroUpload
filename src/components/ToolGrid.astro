@@ -1,0 +1,40 @@
+---
+interface Tool {
+  name: string;
+  description: string;
+  href: string;
+  comingSoon?: boolean;
+}
+
+interface Props {
+  tools: Tool[];
+}
+
+const { tools } = Astro.props;
+---
+
+<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+  {
+    tools.map((tool) =>
+      tool.comingSoon ? (
+        <div class="relative rounded-[var(--radius-xl)] border border-mist bg-paper p-5 opacity-75">
+          <span class="absolute top-3 right-3 rounded-full bg-mist px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-stone">
+            Coming soon
+          </span>
+          <p class="font-display text-lg text-ink">{tool.name}</p>
+          <p class="mt-1 text-xs text-stone">{tool.description}</p>
+        </div>
+      ) : (
+        <a
+          href={tool.href}
+          class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+        >
+          <p class="font-display text-lg text-ink transition-colors group-hover:text-accent">
+            {tool.name}
+          </p>
+          <p class="mt-1 text-xs text-stone">{tool.description}</p>
+        </a>
+      )
+    )
+  }
+</div>

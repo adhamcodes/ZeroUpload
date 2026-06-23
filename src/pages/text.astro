@@ -1,0 +1,81 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FormatPicker from "../components/FormatPicker.tsx";
+import ToolGrid from "../components/ToolGrid.astro";
+
+const sources = [
+  { id: "jpg", name: "JPG" },
+  { id: "png", name: "PNG" },
+  { id: "pdf", name: "PDF" },
+];
+
+const targets = [
+  { id: "txt", name: "TXT" },
+];
+
+const tools = [
+  { name: "Image to Text", description: "Extract text from any image", href: "#", comingSoon: true },
+  { name: "JPG to Text", description: "OCR a JPG photo to plain text", href: "#", comingSoon: true },
+  { name: "PNG to Text", description: "OCR a PNG image to plain text", href: "#", comingSoon: true },
+  { name: "PDF to Text", description: "Extract text from PDF pages", href: "#", comingSoon: true },
+];
+
+const title = "Free OCR — Extract Text from Images & PDFs In Your Browser | ZeroUpload";
+const description =
+  "Extract text from JPG, PNG and PDF files using Tesseract.js OCR running entirely in your browser. 100% private — no upload, no signup, no limits.";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Text Extraction (OCR)",
+    description,
+    url: new URL("/text", Astro.site).href,
+  },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <!-- Hero -->
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-8 text-center">
+    <span
+      class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      100% private · nothing is ever uploaded
+    </span>
+
+    <h1 class="mt-6 font-display text-4xl tracking-tight sm:text-5xl">
+      Text Extraction (OCR)
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Your files are nobody's business. Extract text from images and PDFs using
+      Tesseract.js, running entirely inside your browser. No upload, no server.
+    </p>
+    <p class="mx-auto mt-3 max-w-lg text-sm text-stone/80">
+      OCR accuracy depends on image quality, font clarity, and language. Best
+      results come from clean, high-contrast scans. Handwriting and complex
+      layouts may produce partial results.
+    </p>
+  </section>
+
+  <!-- Format Picker -->
+  <section class="mx-auto max-w-2xl px-6 py-8">
+    <FormatPicker
+      client:load
+      sources={sources}
+      targets={targets}
+      defaultFrom="jpg"
+      defaultTo="txt"
+    />
+  </section>
+
+  <!-- Tool Grid -->
+  <section class="mx-auto max-w-5xl px-6 py-8">
+    <h2 class="font-display text-2xl">OCR tools</h2>
+    <p class="mt-1 text-stone">All processing happens on your device.</p>
+    <div class="mt-8">
+      <ToolGrid tools={tools} />
+    </div>
+  </section>
+</Layout>

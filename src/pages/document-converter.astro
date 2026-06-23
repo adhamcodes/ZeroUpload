@@ -1,30 +1,21 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import ConversionGrid from "../components/ConversionGrid.astro";
-import { conversionsByCategory, CATEGORIES } from "../data/conversions";
-
-const cat = CATEGORIES.document;
-const list = conversionsByCategory("document");
-
-const title = "Free PDF Converter — PDF to Image & Image to PDF | ZeroUpload";
-const description =
-  "Convert PDF to JPG/PNG and images to PDF instantly in your browser. 100% private — no upload, no signup, no limits. Your documents never leave your device.";
-
-const jsonLd = [
-  { "@context": "https://schema.org", "@type": "CollectionPage", name: title, description },
-];
+const pdfUrl = new URL("/pdf", Astro.site).href;
 ---
 
-<Layout title={title} description={description} jsonLd={jsonLd}>
-  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
-    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
-    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
-  </section>
-
-  <section class="mx-auto max-w-5xl px-6 py-8">
-    <h2 class="font-display text-2xl">All PDF conversions</h2>
-    <div class="mt-8">
-      <ConversionGrid conversions={list} />
-    </div>
-  </section>
-</Layout>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content="0;url=/pdf" />
+    <link rel="canonical" href={pdfUrl} />
+    <title>PDF & Document Converter — Redirecting | ZeroUpload</title>
+    <meta name="description" content="This page has moved to /pdf. Convert PDF to images and images to PDF privately in your browser." />
+    <meta name="robots" content="noindex, follow" />
+  </head>
+  <body>
+    <p>
+      This page has moved. If you are not redirected,
+      <a href="/pdf">click here to go to the PDF hub</a>.
+    </p>
+  </body>
+</html>

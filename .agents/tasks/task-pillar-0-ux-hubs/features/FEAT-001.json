@@ -1,0 +1,24 @@
+{
+  "id": "FEAT-001",
+  "type": "chore",
+  "description": "Install dependencies and verify the existing project builds cleanly before making changes.",
+  "status": "blocked",
+  "steps": [
+    "Run `npm install` in /projects/sandbox/ZeroUpload to install all dependencies.",
+    "Run `npm run build` and confirm it exits 0 with ~75 pages generated in dist/.",
+    "Confirm key existing pages exist in dist/: image-converter/index.html, audio-converter/index.html, document-converter/index.html, png-to-jpg/index.html."
+  ],
+  "acceptance_criteria": [
+    "`npm run build` exits with code 0",
+    "dist/ directory contains the expected pages (image-converter, audio-converter, document-converter, at least one per-pair page)"
+  ],
+  "verification": [
+    "Run `npm run build` and confirm exit code 0",
+    "Run `ls dist/image-converter/index.html dist/audio-converter/index.html dist/document-converter/index.html dist/png-to-jpg/index.html` and confirm all exist"
+  ],
+  "blocked_reason": {
+    "retryable": false,
+    "detail": "The npm registry (registry.npmjs.org) is blocked by the environment proxy (returns HTTP 403 Forbidden). The node_modules directory exists but contains only empty directory stubs with zero actual files (no .js, no package.json, no symlinks). Without network access to download packages, npm install cannot succeed and the project cannot build. This is an environment/infrastructure constraint."
+  },
+  "findings": "node_modules directory has 296 top-level entries but they are all empty directory shells. No .js files or package.json files exist anywhere in node_modules. The proxy at BigWeaverExecEnvMgnt-ProxyLBV2 returns 403 for registry.npmjs.org. NODE_OPTIONS env var references a missing file /opt/amazon/kiro-agent/proxy-bootstrap.js which must be unset for any npm command to run."
+}

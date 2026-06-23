@@ -1,0 +1,42 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Build the four upgraded UX hub pages (/pdf, /image-converter, /audio-converter, /text) each with a 'from -> to' format picker component plus a grid of category-specific tools. Create a reusable FormatPicker React island component and a ToolGrid Astro component. Update navigation (Header, Footer) to link to the new hubs. Rename /document-converter to /pdf as the canonical PDF hub. The /text hub is a placeholder for future OCR tools (image-to-text, pdf-to-text).",
+  "status": "in_progress",
+  "steps": [
+    "Step 1: Create a React island component `src/components/FormatPicker.tsx` that renders two dropdowns ('From' and 'To' format) and a 'Convert' button. When the user selects a from+to pair, clicking Convert navigates to the corresponding /{from}-to-{to} page. The component accepts props: `formats` (array of {id, name}), `category` (string for filtering). Style with Tailwind using the Quiet Luxury tokens (border-mist, bg-paper, rounded-[var(--radius-xl)], font-display for labels, accent for the button). Include a privacy line below: 'Nothing is uploaded. Conversion happens on your device.'",
+    "Step 2: Create an Astro component `src/components/ToolGrid.astro` that accepts a `tools` prop (array of {name, description, href, icon?}) and renders them in a responsive grid of cards. Each card links to the tool's page. Use the same card style as ConversionGrid (border-mist, bg-paper, hover:border-accent/60, hover:shadow-luxe). Tools that don't have pages yet should show 'Coming soon' badge and not be clickable links.",
+    "Step 3: Create `/pdf` hub page at `src/pages/pdf.astro`. Hero section with headline 'PDF Tools' and subtitle referencing the motto. FormatPicker configured with PDF source/target formats (pdf, jpg, jpeg, png, webp). ToolGrid with upcoming PDF tools: Merge PDF, Split PDF, Compress PDF, Rotate PDF, Reorder Pages, Images to PDF, PDF to Images (mark future tools as 'coming soon', link existing conversions like pdf-to-jpg and jpg-to-pdf). ConversionGrid showing all document-category conversions below. SEO: title, description, JSON-LD CollectionPage.",
+    "Step 4: Upgrade `src/pages/image-converter.astro`. Add FormatPicker with all image source formats (png, jpg, jpeg, webp, gif, bmp, svg, heic) and image target formats (png, jpg, jpeg, webp). Add ToolGrid with upcoming image tools: Compress Image, Resize Image, Crop Image, Rotate/Flip (all 'coming soon'). Keep the existing ConversionGrid below. Update the page title/description for SEO. Add privacy motto reference in the hero section.",
+    "Step 5: Upgrade `src/pages/audio-converter.astro`. Add FormatPicker with audio formats (mp3, wav, ogg, m4a, flac, aac). Add ToolGrid with upcoming audio tools: Trim/Cut Audio, Merge Audio, Compress Audio (all 'coming soon'). Keep the existing ConversionGrid and the engine-download note. Update hero with motto reference.",
+    "Step 6: Create `/text` hub page at `src/pages/text.astro`. Hero with headline 'Text Extraction (OCR)' explaining in-browser OCR via Tesseract.js. FormatPicker with source formats (jpg, png, pdf) and target 'TXT' (mark as coming soon since OCR engine not yet built). ToolGrid with planned tools: Image to Text, JPG to Text, PNG to Text, PDF to Text (all 'coming soon'). SEO metadata. Honest caveat about OCR accuracy.",
+    "Step 7: Update `src/components/Header.astro` navigation to include links to /pdf, /image-converter, /audio-converter, and /text. Replace the 'PDF' link (currently pointing to /document-converter) with /pdf.",
+    "Step 8: Update `src/components/Footer.astro` to link to /pdf instead of /document-converter, and add a link to /text. Keep popular conversions.",
+    "Step 9: Keep `src/pages/document-converter.astro` as a redirect or minimal page that redirects to /pdf (add a meta refresh or canonical pointing to /pdf, or simply make it redirect). This preserves any existing links/SEO.",
+    "Step 10: Run `npm run build` and verify all new pages appear in dist/ (pdf/index.html, text/index.html, image-converter/index.html, audio-converter/index.html) alongside all existing conversion pages."
+  ],
+  "acceptance_criteria": [
+    "`npm run build` exits 0 with no errors",
+    "dist/pdf/index.html exists and contains the FormatPicker and ToolGrid sections",
+    "dist/text/index.html exists with OCR hub content",
+    "dist/image-converter/index.html contains the FormatPicker and ToolGrid sections (upgraded from the old version)",
+    "dist/audio-converter/index.html contains the FormatPicker and ToolGrid sections",
+    "Header nav includes links to /pdf, /image-converter, /audio-converter, /text",
+    "Footer includes link to /pdf and /text",
+    "All existing per-pair conversion pages still build (e.g. png-to-jpg, heic-to-jpg, pdf-to-jpg, mp3-to-wav)",
+    "FormatPicker navigates to the correct /{from}-to-{to} slug when Convert is clicked",
+    "Pages follow Quiet Luxury design: Fraunces headings, Inter body, green accent, warm neutrals, generous whitespace",
+    "Each hub page has proper SEO meta (title, description, JSON-LD)",
+    "Privacy/motto messaging is visible on each hub page"
+  ],
+  "verification": [
+    "Confirm all new source files exist: src/pages/pdf.astro, src/pages/text.astro, src/components/FormatPicker.tsx, src/components/ToolGrid.astro",
+    "Confirm modified files have correct syntax by checking they import required modules and export valid Astro/React components",
+    "Grep src/components/Header.astro for '/pdf' and '/text' links",
+    "Grep src/components/Footer.astro for '/pdf' and '/text' links",
+    "Confirm FormatPicker.tsx contains proper React component with dropdowns and navigation logic",
+    "NOTE: npm run build cannot run due to network restrictions (npm registry blocked). Build verification deferred to CI/Cloudflare preview."
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
