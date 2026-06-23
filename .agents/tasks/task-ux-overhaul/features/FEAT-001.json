@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Design system upgrade: extend Atelier tokens for depth/texture/layering, premium dark mode (green-charcoal with elevation, not flat black), remove ambient glow animation, add functional-only animation utilities. This PR sets the visual foundation for all subsequent work.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "In src/styles/global.css @theme block, add new depth tokens: --color-backdrop (warm paper-grain tinted canvas for light), --shadow-surface (subtle inner glow for card elevation), --shadow-depth (deeper layered shadow for major containers). Add --color-overlay for glassmorphism/elevated surfaces.",
     "In src/styles/global.css [data-theme='dark'] block, replace flat near-black with a GREEN-CHARCOAL palette: canvas oklch(10% 0.03 165) (very dark green-charcoal), surface oklch(14% 0.025 165), paper oklch(16% 0.02 165). Update shadows for dark to use subtle green-tinted glows rather than flat borders. This creates the layered/elevated feel in dark mode.",
@@ -23,5 +23,5 @@
     "Read src/styles/global.css and confirm: no dropzone-glow keyframe, dark mode hues shifted to green (~165), new animation utilities present with @media (prefers-reduced-motion: reduce) guards, all original token names intact"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All acceptance criteria verified: dropzone-glow removed, dark mode hues shifted to 165, shadow-surface/shadow-depth in both modes, settle/slide-up/progress-fill animations with reduced-motion guards, all 12 original token names preserved. No build/test available in sandbox (INTEGRATIONS_ONLY network)."
 }
