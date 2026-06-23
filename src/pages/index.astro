@@ -35,11 +35,18 @@ const jsonLd = [
 
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <!-- HERO -->
-  <section class="mx-auto max-w-3xl px-6 pt-20 pb-12 text-center sm:pt-28">
+  <section class="relative mx-auto max-w-3xl px-6 pt-20 pb-12 text-center sm:pt-28">
+    <!-- Atmospheric radial gradient behind hero -->
+    <div
+      class="pointer-events-none absolute inset-0 -z-10"
+      style="background: radial-gradient(ellipse at 50% 40%, oklch(66% 0.12 70 / 0.06) 0%, transparent 60%);"
+      aria-hidden="true"
+    ></div>
+
     <span
       class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
     >
-      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      <span class="h-1.5 w-1.5 rounded-full bg-brass"></span>
       100% private · nothing is ever uploaded
     </span>
 
@@ -76,12 +83,14 @@ const jsonLd = [
         categoryCards.map((cat) => (
           <a
             href={`/${cat.slug}`}
-            class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-7 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+            class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-7 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
           >
             <p class="font-display text-xl text-ink transition-colors group-hover:text-accent">
               {cat.title}
             </p>
-            <p class="mt-2 text-sm text-stone">{cat.blurb}</p>
+            <p class="mt-2 text-sm text-stone">
+              <span class="font-mono">{cat.blurb}</span>
+            </p>
           </a>
         ))
       }

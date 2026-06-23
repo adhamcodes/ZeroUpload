@@ -1,10 +1,51 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
+import ToolGrid from "../components/ToolGrid.astro";
+import FormatPicker from "../components/FormatPicker.tsx";
 import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 
 const cat = CATEGORIES.image;
 const list = conversionsByCategory("image").filter((c) => c.engine !== "img2pdf");
+
+const quickChips = [
+  { from: "png", to: "jpg", label: "PNG to JPG" },
+  { from: "heic", to: "jpg", label: "HEIC to JPG" },
+  { from: "webp", to: "png", label: "WEBP to PNG" },
+];
+
+const tools = [
+  {
+    title: "Resize",
+    description: "Resize images to exact dimensions",
+    href: "/image-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+  },
+  {
+    title: "Crop",
+    description: "Crop images to focus on what matters",
+    href: "/image-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.13 1 6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13 16 6a2 2 0 0 1 2 2v15"/></svg>',
+  },
+  {
+    title: "Compress",
+    description: "Reduce file size without visible loss",
+    href: "/image-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+  },
+  {
+    title: "Rotate",
+    description: "Rotate images to any angle",
+    href: "/image-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
+  },
+  {
+    title: "Batch Convert",
+    description: "Convert multiple images at once",
+    href: "/image-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="14" rx="2"/><path d="M6 3h12a2 2 0 0 1 2 2v14"/></svg>',
+  },
+];
 
 const title = "Free Image Converter — Convert Images In Your Browser | ZeroUpload";
 const description =
@@ -17,8 +58,20 @@ const jsonLd = [
 
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
-    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
+    <span class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone">
+      <span class="h-1.5 w-1.5 rounded-full bg-brass"></span>
+      100% private · on-device conversion
+    </span>
+    <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
+    <FormatPicker client:load quickChips={quickChips} />
+  </section>
+
+  <section class="mx-auto max-w-5xl px-6 py-8">
+    <h2 class="font-display text-2xl">Tools</h2>
+    <div class="mt-6">
+      <ToolGrid tools={tools} />
+    </div>
   </section>
 
   <section class="mx-auto max-w-5xl px-6 py-8">

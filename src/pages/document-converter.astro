@@ -1,10 +1,45 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
+import ToolGrid from "../components/ToolGrid.astro";
+import FormatPicker from "../components/FormatPicker.tsx";
 import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 
 const cat = CATEGORIES.document;
 const list = conversionsByCategory("document");
+
+const quickChips = [
+  { from: "pdf", to: "jpg", label: "PDF to JPG" },
+  { from: "jpg", to: "pdf", label: "JPG to PDF" },
+  { from: "png", to: "pdf", label: "PNG to PDF" },
+];
+
+const tools = [
+  {
+    title: "Merge",
+    description: "Combine multiple images into one PDF",
+    href: "/document-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6"/></svg>',
+  },
+  {
+    title: "Split",
+    description: "Extract individual pages as images",
+    href: "/document-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>',
+  },
+  {
+    title: "Extract Text",
+    description: "Pull text content from PDF pages",
+    href: "/document-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
+  },
+  {
+    title: "Compress",
+    description: "Reduce PDF file size for sharing",
+    href: "/document-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+  },
+];
 
 const title = "Free PDF Converter — PDF to Image & Image to PDF | ZeroUpload";
 const description =
@@ -17,8 +52,20 @@ const jsonLd = [
 
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
-    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
+    <span class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone">
+      <span class="h-1.5 w-1.5 rounded-full bg-brass"></span>
+      100% private · on-device conversion
+    </span>
+    <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
+    <FormatPicker client:load quickChips={quickChips} />
+  </section>
+
+  <section class="mx-auto max-w-5xl px-6 py-8">
+    <h2 class="font-display text-2xl">Tools</h2>
+    <div class="mt-6">
+      <ToolGrid tools={tools} />
+    </div>
   </section>
 
   <section class="mx-auto max-w-5xl px-6 py-8">

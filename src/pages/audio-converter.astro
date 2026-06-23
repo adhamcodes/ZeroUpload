@@ -1,10 +1,39 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
+import ToolGrid from "../components/ToolGrid.astro";
+import FormatPicker from "../components/FormatPicker.tsx";
 import { conversionsByCategory, CATEGORIES } from "../data/conversions";
 
 const cat = CATEGORIES.audio;
 const list = conversionsByCategory("audio");
+
+const quickChips = [
+  { from: "mp3", to: "wav", label: "MP3 to WAV" },
+  { from: "m4a", to: "mp3", label: "M4A to MP3" },
+  { from: "wav", to: "mp3", label: "WAV to MP3" },
+];
+
+const tools = [
+  {
+    title: "Trim",
+    description: "Cut audio to the exact segment you need",
+    href: "/audio-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>',
+  },
+  {
+    title: "Join",
+    description: "Merge multiple audio files into one",
+    href: "/audio-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  },
+  {
+    title: "Convert Format",
+    description: "Switch between MP3, WAV, FLAC, OGG and more",
+    href: "/audio-converter",
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+  },
+];
 
 const title = "Free Audio Converter — MP3, WAV, FLAC, M4A In Your Browser | ZeroUpload";
 const description =
@@ -17,8 +46,20 @@ const jsonLd = [
 
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
-    <h1 class="font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
+    <span class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone">
+      <span class="h-1.5 w-1.5 rounded-full bg-brass"></span>
+      100% private · on-device conversion
+    </span>
+    <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">{cat.title}</h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{cat.tagline}</p>
+    <FormatPicker client:load quickChips={quickChips} />
+  </section>
+
+  <section class="mx-auto max-w-5xl px-6 py-8">
+    <h2 class="font-display text-2xl">Tools</h2>
+    <div class="mt-6">
+      <ToolGrid tools={tools} />
+    </div>
   </section>
 
   <section class="mx-auto max-w-5xl px-6 py-8">
@@ -27,7 +68,7 @@ const jsonLd = [
       <ConversionGrid conversions={list} />
     </div>
     <p class="mt-6 text-xs text-stone/80">
-      Note: the audio engine downloads once (about 32 MB) from this site on first
+      Note: the audio engine downloads once (about <span class="font-mono">32 MB</span>) from this site on first
       use, then is cached by your browser. Audio still never leaves your device.
     </p>
   </section>

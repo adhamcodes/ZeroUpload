@@ -31,6 +31,7 @@ import { CATEGORIES } from "../data/conversions";
       </span>
     </a>
 
+    <!-- Desktop nav -->
     <nav class="hidden items-center gap-7 text-sm text-stone sm:flex">
       <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.image.slug}`}>
         Image
@@ -43,6 +44,125 @@ import { CATEGORIES } from "../data/conversions";
       </a>
       <a class="transition-colors hover:text-ink" href="/articles">Articles</a>
       <a class="transition-colors hover:text-ink" href="/#privacy">Privacy</a>
+
+      <!-- Dark mode toggle -->
+      <button
+        id="theme-toggle"
+        type="button"
+        aria-label="Toggle dark mode"
+        class="flex h-8 w-8 items-center justify-center rounded-full border border-mist bg-paper text-stone transition-colors hover:border-accent/60 hover:text-ink"
+      >
+        <!-- Sun icon (shown in dark mode) -->
+        <svg class="hidden h-4 w-4 dark-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+        <!-- Moon icon (shown in light mode) -->
+        <svg class="h-4 w-4 light-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      </button>
     </nav>
+
+    <!-- Mobile controls -->
+    <div class="flex items-center gap-2 sm:hidden">
+      <!-- Mobile dark mode toggle -->
+      <button
+        id="theme-toggle-mobile"
+        type="button"
+        aria-label="Toggle dark mode"
+        class="flex h-8 w-8 items-center justify-center rounded-full border border-mist bg-paper text-stone transition-colors hover:border-accent/60 hover:text-ink"
+      >
+        <svg class="hidden h-4 w-4 dark-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+        <svg class="h-4 w-4 light-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      </button>
+
+      <!-- Hamburger menu button -->
+      <button
+        id="mobile-menu-btn"
+        type="button"
+        aria-label="Open navigation menu"
+        class="flex h-8 w-8 items-center justify-center rounded-full border border-mist bg-paper text-stone transition-colors hover:border-accent/60 hover:text-ink"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12h18M3 6h18M3 18h18" />
+        </svg>
+      </button>
+    </div>
   </div>
+
+  <!-- Mobile nav menu (hidden by default) -->
+  <nav id="mobile-menu" class="hidden border-t border-mist/70 bg-paper px-6 py-4 sm:hidden">
+    <div class="flex flex-col gap-4 text-sm text-stone">
+      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.image.slug}`}>Image</a>
+      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.document.slug}`}>PDF</a>
+      <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.audio.slug}`}>Audio</a>
+      <a class="transition-colors hover:text-ink" href="/articles">Articles</a>
+      <a class="transition-colors hover:text-ink" href="/#privacy">Privacy</a>
+    </div>
+  </nav>
 </header>
+
+<script>
+  (function() {
+    const html = document.documentElement;
+
+    // Resolve initial theme
+    function getStoredTheme() {
+      try { return localStorage.getItem('theme'); } catch { return null; }
+    }
+
+    function applyTheme(theme: string) {
+      html.setAttribute('data-theme', theme);
+      try { localStorage.setItem('theme', theme); } catch {}
+      updateIcons(theme);
+    }
+
+    function updateIcons(theme: string) {
+      const darkIcons = document.querySelectorAll('.dark-icon');
+      const lightIcons = document.querySelectorAll('.light-icon');
+      if (theme === 'dark') {
+        darkIcons.forEach(el => el.classList.remove('hidden'));
+        lightIcons.forEach(el => el.classList.add('hidden'));
+      } else {
+        darkIcons.forEach(el => el.classList.add('hidden'));
+        lightIcons.forEach(el => el.classList.remove('hidden'));
+      }
+    }
+
+    function toggleTheme() {
+      const current = html.getAttribute('data-theme') || 'light';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // Initialize theme on page load
+    const stored = getStoredTheme();
+    if (stored) {
+      applyTheme(stored);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      applyTheme('dark');
+    } else {
+      applyTheme('light');
+    }
+
+    // Wire toggle buttons
+    const toggleBtn = document.getElementById('theme-toggle');
+    const toggleBtnMobile = document.getElementById('theme-toggle-mobile');
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
+    if (toggleBtnMobile) toggleBtnMobile.addEventListener('click', toggleTheme);
+
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (menuBtn && mobileMenu) {
+      menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+  })();
+</script>

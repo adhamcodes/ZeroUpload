@@ -13,7 +13,7 @@ const year = new Date().getFullYear();
   <div class="mx-auto max-w-5xl px-6 py-12">
     <div class="flex flex-col gap-8 sm:flex-row sm:justify-between">
       <div class="max-w-xs">
-        <p class="font-display text-lg">ZeroUpload</p>
+        <p class="font-display text-lg transition-colors hover:text-brass">ZeroUpload</p>
         <p class="mt-2 text-sm text-stone">
           Convert files 100% in your browser. Zero uploads. Zero limits. Zero
           servers. Your files never leave your device.
@@ -67,7 +67,7 @@ const year = new Date().getFullYear();
     </div>
 
     <p class="mt-10 text-xs text-stone">
-      &copy; {year} ZeroUpload. Built for privacy. No file ever uploaded.
+      &copy; <span class="font-mono">{year}</span> ZeroUpload. Built for privacy. No file ever uploaded.
     </p>
   </div>
 </footer>

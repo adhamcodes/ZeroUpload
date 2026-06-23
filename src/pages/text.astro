@@ -1,0 +1,41 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FormatPicker from "../components/FormatPicker.tsx";
+
+const quickChips = [
+  { from: "jpg", to: "txt", label: "JPG to Text" },
+  { from: "png", to: "txt", label: "PNG to Text" },
+];
+
+const title = "Free Text Extractor — OCR In Your Browser | ZeroUpload";
+const description =
+  "Extract text from images using OCR directly in your browser. 100% private — no upload, no signup, no limits. Your files never leave your device.";
+
+const jsonLd = [
+  { "@context": "https://schema.org", "@type": "CollectionPage", name: title, description },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
+    <span class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone">
+      <span class="h-1.5 w-1.5 rounded-full bg-brass"></span>
+      100% private · on-device OCR
+    </span>
+    <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">Text Extractor</h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Extract text from images using OCR, entirely in your browser. No upload, no server.
+    </p>
+    <FormatPicker client:load quickChips={quickChips} />
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 py-12 text-center">
+    <div class="rounded-[var(--radius-xl)] border border-mist bg-paper p-8">
+      <p class="font-display text-xl text-ink">Coming Soon</p>
+      <p class="mt-2 text-sm text-stone">
+        Text extraction (OCR) is on our roadmap. It will run entirely in your browser using
+        <span class="font-mono">Tesseract.js</span> — no uploads, ever.
+      </p>
+    </div>
+  </section>
+</Layout>

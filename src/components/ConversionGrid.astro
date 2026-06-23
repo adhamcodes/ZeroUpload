@@ -12,11 +12,11 @@ const { conversions } = Astro.props;
     conversions.map((c) => (
       <a
         href={`/${c.slug}`}
-        class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+        class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[var(--shadow-lifted)]"
       >
         <p class="font-display text-lg text-ink">
           {c.from.name}{" "}
-          <span class="text-stone transition-colors group-hover:text-accent">
+          <span class="font-mono text-stone transition-colors group-hover:text-accent">
             &rarr;
           </span>{" "}
           {c.to.name}

@@ -79,6 +79,11 @@ function breathe(ms = 80): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Check if user prefers reduced motion */
+function getReducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export default function Converter({ engine, to, fromName, toName, accept }: Props) {
   const [status, setStatus] = useState<Status>("idle");
   const [dragging, setDragging] = useState(false);
@@ -88,7 +93,10 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [statusLabel, setStatusLabel] = useState("Converting on your device…");
   const [device, setDevice] = useState<DeviceProfile | null>(null);
+  const [showShimmer, setShowShimmer] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const prefersReducedMotion = getReducedMotion();
 
   useEffect(() => {
     setDevice(detectDevice(engine));
@@ -157,6 +165,12 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
         }
         setItems((prev) => [...done, ...prev]);
         setStatus("done");
+
+        // Trigger shimmer effect on success
+        if (!prefersReducedMotion) {
+          setShowShimmer(true);
+          setTimeout(() => setShowShimmer(false), 600);
+        }
       } catch (e) {
         console.error("[ZeroUpload] conversion error:", e);
         const msg =
@@ -171,7 +185,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
         setProgress(null);
       }
     },
-    [engine, to, device, validateBatch],
+    [engine, to, device, validateBatch, prefersReducedMotion],
   );
 
   const onDrop = useCallback(
@@ -224,6 +238,34 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
           working ? "cursor-progress" : "",
         ].join(" ")}
       >
+        {/* Dropzone glow - subtle radial gradient pulse in idle state */}
+        {!working && !prefersReducedMotion && (
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[var(--radius-xl)]"
+            style={{
+              background: "radial-gradient(ellipse at center, oklch(37% 0.08 165 / 0.06) 0%, transparent 70%)",
+              animation: "dropzone-glow 3s ease-in-out infinite",
+            }}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Shimmer overlay on success */}
+        {showShimmer && (
+          <div
+            className="pointer-events-none absolute inset-0 overflow-hidden rounded-[var(--radius-xl)]"
+            aria-hidden="true"
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(90deg, transparent 0%, oklch(66% 0.12 70 / 0.12) 50%, transparent 100%)",
+                animation: "shimmer 0.6s ease-out forwards",
+              }}
+            />
+          </div>
+        )}
+
         <input
           ref={inputRef}
           type="file"
@@ -266,12 +308,38 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
         )}
       </div>
 
-      <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-        </svg>
-        Nothing is uploaded. Your files never leave this browser.
-      </p>
+      {/* Privacy text with offline-proof pill */}
+      <div className="mt-4 flex items-center justify-center gap-3 text-xs text-stone">
+        <span className="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+          </svg>
+          Nothing is uploaded. Your files never leave this browser.
+        </span>
+
+        {/* Offline-proof pill */}
+        <span className="inline-flex items-center gap-1 rounded-full border border-mist bg-paper px-2 py-0.5 text-[10px] font-mono text-stone">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={prefersReducedMotion ? "" : "animate-wifi-pulse"}
+            style={prefersReducedMotion ? {} : { animation: "wifi-pulse 4s ease-in-out infinite" }}
+          >
+            <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+            <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+            <circle cx="12" cy="20" r="1" />
+          </svg>
+          offline-proof
+        </span>
+      </div>
 
       {error && (
         <div className="mt-4 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
@@ -292,7 +360,7 @@ export default function Converter({ engine, to, fromName, toName, accept }: Prop
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-ink">{item.result.filename}</p>
                 <p className="text-xs text-stone">
-                  {prettyBytes(item.result.blob.size)} · done in {item.result.ms}ms
+                  {prettyBytes(item.result.blob.size)} · done in <span className="font-mono">{item.result.ms}ms</span>
                 </p>
               </div>
               <a
