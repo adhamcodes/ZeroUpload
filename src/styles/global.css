@@ -206,23 +206,6 @@ body::after {
 .animate-progress-sweep { animation: progress-sweep 1.1s var(--ease-in-out) infinite; }
 .animate-wifi-pulse { animation: wifi-pulse 3s ease-in-out infinite; }
 
-/*
-  Legacy converter motion — retained ONLY so the existing Converter renders
-  unchanged in this foundation PR. Both the ambient "breathing" glow and its
-  keyframes are removed in the Converter overhaul PR (motion becomes functional
-  only). Do not introduce new usages of these.
-*/
-@keyframes dropzone-glow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-}
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-.animate-dropzone-glow { animation: dropzone-glow 4s ease-in-out infinite; }
-.animate-shimmer { animation: shimmer 0.9s ease-out 1; }
-
 /* Respect reduced motion everywhere */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -230,9 +213,7 @@ body::after {
   .animate-card-in,
   .animate-settle,
   .animate-progress-sweep,
-  .animate-wifi-pulse,
-  .animate-dropzone-glow,
-  .animate-shimmer {
+  .animate-wifi-pulse {
     animation: none !important;
   }
 }

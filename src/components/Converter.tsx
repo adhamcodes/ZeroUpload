@@ -1,35 +1,74 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type KeyboardEvent,
+} from "react";
 import {
   convertFile,
   engineIsHeavy,
   type ConvertResult,
   type EngineId,
 } from "../lib/convert";
+import { makePreviewUrl, isRasterFormat } from "../lib/preview";
+import Dropdown, { type DropdownOption } from "./Dropdown";
+import FormatGlyph from "./FormatGlyph";
 
-interface Props {
-  /** engine that powers this conversion */
-  engine: EngineId;
-  /** target format id, e.g. "jpg" */
-  to: string;
-  /** source format name for copy, e.g. "PNG" */
-  fromName: string;
-  /** target format name for copy, e.g. "JPG" */
-  toName: string;
-  /** accept attribute hint */
+export interface ConverterSource {
+  id: string;
+  name: string;
+  /** accept hint contributed to the file input */
   accept?: string;
 }
 
-type Status = "idle" | "working" | "done" | "error";
+export interface ConverterTarget {
+  id: string;
+  name: string;
+}
 
-interface DoneItem {
+interface Props {
+  /** formats the user may drop (used for the input accept + detection) */
+  sources: ConverterSource[];
+  /** formats the user may convert to */
+  targets: ConverterTarget[];
+  /** engine for a given pair, keyed "from-to" */
+  engineMap: Record<string, EngineId>;
+  /** initially-selected target id */
+  defaultTo: string;
+  /**
+   * When set (SEO pages), every dropped file is treated as this source format
+   * and the source is shown as a fixed chip instead of being auto-detected.
+   */
+  lockedFrom?: string;
+  /** label for the locked source chip, e.g. "PNG" */
+  lockedFromName?: string;
+}
+
+type ItemStatus = "preview" | "converting" | "done" | "error";
+
+interface OutputFile {
   result: ConvertResult;
   url: string;
 }
 
-/* ---------------- Anti-fragile memory management ----------------
-   Detect device class, cap batch size/bytes, process strictly sequentially
-   with GC breathing room, and tell the user what's happening. Heavy engines
-   (audio) also get a generous size budget since ffmpeg streams. */
+interface FileItem {
+  id: string;
+  file: File;
+  fromId: string;
+  status: ItemStatus;
+  previewUrl: string | null;
+  progressLabel: string;
+  outputs: OutputFile[];
+  outBytes: number;
+  /** result thumbnail (raster targets only); aliases an output url */
+  resultThumbUrl: string | null;
+  error: string;
+}
+
+/* ---------------- device / memory guards (preserved) ---------------- */
 
 interface DeviceProfile {
   isMobile: boolean;
@@ -39,30 +78,35 @@ interface DeviceProfile {
   maxBatchBytes: number;
 }
 
-function detectDevice(engine: EngineId): DeviceProfile {
-  const big = engine === "audio" || engine === "pdf2img";
+function detectDevice(big: boolean): DeviceProfile {
   if (typeof navigator === "undefined") {
     return {
-      isMobile: false, lowMemory: false, maxFiles: 50,
+      isMobile: false,
+      lowMemory: false,
+      maxFiles: 50,
       maxFileBytes: (big ? 300 : 100) * 1024 * 1024,
       maxBatchBytes: 400 * 1024 * 1024,
     };
   }
   const ua = navigator.userAgent || "";
   const isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua);
-  const deviceMemory = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
-  const lowMemory = isMobile || (typeof deviceMemory === "number" && deviceMemory <= 4);
+  const deviceMemory = (navigator as unknown as { deviceMemory?: number })
+    .deviceMemory;
+  const lowMemory =
+    isMobile || (typeof deviceMemory === "number" && deviceMemory <= 4);
 
   if (lowMemory) {
     return {
-      isMobile, lowMemory: true,
+      isMobile,
+      lowMemory: true,
       maxFiles: big ? 2 : 5,
       maxFileBytes: (big ? 60 : 25) * 1024 * 1024,
       maxBatchBytes: (big ? 80 : 60) * 1024 * 1024,
     };
   }
   return {
-    isMobile, lowMemory: false,
+    isMobile,
+    lowMemory: false,
     maxFiles: big ? 10 : 50,
     maxFileBytes: (big ? 500 : 100) * 1024 * 1024,
     maxBatchBytes: 800 * 1024 * 1024,
@@ -75,256 +119,650 @@ function prettyBytes(n: number): string {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function breathe(ms = 80): Promise<void> {
+function breathe(ms = 120): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export default function Converter({ engine, to, fromName, toName, accept }: Props) {
-  const [status, setStatus] = useState<Status>("idle");
+const EXT_ALIASES: Record<string, string> = {
+  jpeg: "jpg",
+  jpg: "jpg",
+  heif: "heic",
+  tif: "tiff",
+};
+
+let itemSeq = 0;
+
+export default function Converter({
+  sources,
+  targets,
+  engineMap,
+  defaultTo,
+  lockedFrom,
+  lockedFromName,
+}: Props) {
+  const [items, setItems] = useState<FileItem[]>([]);
+  const [selectedTo, setSelectedTo] = useState(
+    targets.some((t) => t.id === defaultTo) ? defaultTo : targets[0]?.id ?? "",
+  );
   const [dragging, setDragging] = useState(false);
-  const [items, setItems] = useState<DoneItem[]>([]);
-  const [error, setError] = useState<string>("");
-  const [info, setInfo] = useState<string>("");
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [statusLabel, setStatusLabel] = useState("Converting on your device…");
-  const [device, setDevice] = useState<DeviceProfile | null>(null);
+  const [justDropped, setJustDropped] = useState(false);
+  const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const itemsRef = useRef<FileItem[]>([]);
+  const runTokenRef = useRef(0);
+  itemsRef.current = items;
 
-  useEffect(() => {
-    setDevice(detectDevice(engine));
-  }, [engine]);
+  /* whether the current target involves a "big" engine across any source */
+  const targetIsBig = useCallback(
+    (toId: string) =>
+      sources.some((s) => {
+        const e = engineMap[`${s.id}-${toId}`];
+        return e === "audio" || e === "pdf2img";
+      }),
+    [sources, engineMap],
+  );
 
-  const validateBatch = useCallback((files: File[], d: DeviceProfile): string | null => {
-    if (files.length > d.maxFiles) {
-      return `For a smooth experience on this device, please convert up to ${d.maxFiles} file(s) at a time. You selected ${files.length}.`;
-    }
-    const oversize = files.find((f) => f.size > d.maxFileBytes);
-    if (oversize) {
-      return `"${oversize.name}" is ${prettyBytes(oversize.size)}. On this device the per-file limit is ${prettyBytes(d.maxFileBytes)} to keep your browser stable.`;
-    }
-    const total = files.reduce((sum, f) => sum + f.size, 0);
-    if (total > d.maxBatchBytes) {
-      return `That batch is ${prettyBytes(total)}. Please keep batches under ${prettyBytes(d.maxBatchBytes)} on this device, or convert in smaller groups.`;
-    }
-    return null;
+  const accept = useMemo(() => {
+    const parts = sources.map(
+      (s) => s.accept ?? `.${s.id}`,
+    );
+    return Array.from(new Set(parts.join(",").split(","))).join(",");
+  }, [sources]);
+
+  const targetName =
+    targets.find((t) => t.id === selectedTo)?.name ?? selectedTo.toUpperCase();
+
+  const targetOptions: DropdownOption[] = targets.map((t) => ({
+    id: t.id,
+    name: t.name,
+  }));
+
+  /* ---- source detection (skipped when locked) ---- */
+  const detectFrom = useCallback(
+    (file: File): string => {
+      if (lockedFrom) return lockedFrom;
+      const name = file.name.toLowerCase();
+      const rawExt = name.includes(".") ? name.split(".").pop()! : "";
+      const ext = EXT_ALIASES[rawExt] ?? rawExt;
+      // direct id match
+      if (sources.some((s) => s.id === ext)) return ext;
+      // mime-based best effort
+      const mime = file.type;
+      const byMime = sources.find((s) => mime && mime.includes(s.id));
+      if (byMime) return byMime.id;
+      return rawExt || (sources[0]?.id ?? "");
+    },
+    [lockedFrom, sources],
+  );
+
+  /* ---- validation (preserved) ---- */
+  const validateBatch = useCallback(
+    (files: File[], d: DeviceProfile): string | null => {
+      const existing = itemsRef.current.length;
+      if (files.length + existing > d.maxFiles) {
+        return `For a smooth experience on this device, please keep to ${d.maxFiles} file(s) at a time.`;
+      }
+      const oversize = files.find((f) => f.size > d.maxFileBytes);
+      if (oversize) {
+        return `"${oversize.name}" is ${prettyBytes(oversize.size)}. On this device the per-file limit is ${prettyBytes(d.maxFileBytes)} to keep your browser stable.`;
+      }
+      const total = files.reduce((sum, f) => sum + f.size, 0);
+      if (total > d.maxBatchBytes) {
+        return `That batch is ${prettyBytes(total)}. Please keep batches under ${prettyBytes(d.maxBatchBytes)} on this device, or convert in smaller groups.`;
+      }
+      return null;
+    },
+    [],
+  );
+
+  const patchItem = useCallback((id: string, patch: Partial<FileItem>) => {
+    setItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, ...patch } : it)),
+    );
   }, []);
 
-  const handleFiles = useCallback(
+  /* ---- the conversion run (sequential cascade + abort token) ---- */
+  const runConversion = useCallback(
+    async (toId: string, queue: FileItem[]) => {
+      const token = ++runTokenRef.current;
+      const d = detectDevice(targetIsBig(toId));
+      setInfo("");
+
+      for (const item of queue) {
+        if (runTokenRef.current !== token) return; // superseded
+
+        const engine = engineMap[`${item.fromId}-${toId}`];
+        if (!engine) {
+          patchItem(item.id, {
+            status: "error",
+            error: `Can't convert ${item.fromId.toUpperCase()} to ${toId.toUpperCase()}.`,
+          });
+          continue;
+        }
+
+        patchItem(item.id, {
+          status: "converting",
+          progressLabel: engineIsHeavy(engine)
+            ? "Loading engine (first use only)…"
+            : "Converting on your device…",
+          error: "",
+        });
+
+        try {
+          const opts = {
+            maxPages: d.lowMemory && engine === "pdf2img" ? 30 : undefined,
+            scale: d.lowMemory && engine === "pdf2img" ? 1.5 : undefined,
+            onProgress: (_r: number, label: string) =>
+              patchItem(item.id, { progressLabel: label }),
+            onInfo: (message: string) => setInfo(message),
+          };
+
+          const outputs = await convertFile(item.file, engine, toId, opts);
+          if (runTokenRef.current !== token) return; // superseded mid-flight
+
+          const urls: OutputFile[] = outputs.map((result) => ({
+            result,
+            url: URL.createObjectURL(result.blob),
+          }));
+          const outBytes = outputs.reduce((s, o) => s + o.blob.size, 0);
+          const resultThumbUrl =
+            isRasterFormat(toId) && urls.length > 0 ? urls[0].url : null;
+
+          patchItem(item.id, {
+            status: "done",
+            outputs: urls,
+            outBytes,
+            resultThumbUrl,
+            progressLabel: "",
+          });
+        } catch (e) {
+          if (runTokenRef.current !== token) return;
+          console.error("[ZeroUpload] conversion error:", e);
+          const msg =
+            e instanceof Error
+              ? e.message
+              : typeof e === "string"
+                ? e
+                : "Something went wrong converting that file.";
+          patchItem(item.id, { status: "error", error: msg, progressLabel: "" });
+        }
+
+        if (d.lowMemory) await breathe(150);
+      }
+    },
+    [engineMap, targetIsBig, patchItem],
+  );
+
+  /* ---- add files ---- */
+  const addFiles = useCallback(
     async (fileList: FileList | null) => {
       if (!fileList || fileList.length === 0) return;
-      const d = device ?? detectDevice(engine);
       const files = Array.from(fileList);
+      const d = detectDevice(targetIsBig(selectedTo));
 
       const validationError = validateBatch(files, d);
       if (validationError) {
         setError(validationError);
-        setStatus("error");
         return;
       }
-
-      setStatus("working");
       setError("");
-      setInfo("");
-      setProgress({ done: 0, total: files.length });
-      setStatusLabel(
-        engineIsHeavy(engine)
-          ? "Loading audio engine (first use only)…"
-          : "Converting on your device…",
+
+      // drop reaction (functional, one-shot)
+      setJustDropped(true);
+      window.setTimeout(() => setJustDropped(false), 360);
+
+      const newItems: FileItem[] = files.map((file) => ({
+        id: `f${++itemSeq}`,
+        file,
+        fromId: detectFrom(file),
+        status: "preview",
+        previewUrl: null,
+        progressLabel: "",
+        outputs: [],
+        outBytes: 0,
+        resultThumbUrl: null,
+        error: "",
+      }));
+
+      setItems((prev) => [...prev, ...newItems]);
+
+      // Kick off conversion immediately (cascade); previews resolve in parallel.
+      // Pass the item objects directly — itemsRef hasn't re-rendered yet.
+      void runConversion(selectedTo, newItems);
+
+      // Generate source previews without blocking conversion.
+      newItems.forEach(async (it) => {
+        const url = await makePreviewUrl(it.file, it.fromId);
+        if (url) patchItem(it.id, { previewUrl: url });
+      });
+    },
+    [selectedTo, targetIsBig, validateBatch, detectFrom, runConversion, patchItem],
+  );
+
+  /* ---- target change -> re-convert everything ---- */
+  const changeTarget = useCallback(
+    (toId: string) => {
+      setSelectedTo(toId);
+      const current = itemsRef.current;
+      if (current.length === 0) return;
+      // Revoke prior output urls before re-running.
+      current.forEach((it) => {
+        it.outputs.forEach((o) => URL.revokeObjectURL(o.url));
+      });
+      setItems((prev) =>
+        prev.map((it) => ({
+          ...it,
+          status: "converting",
+          outputs: [],
+          outBytes: 0,
+          resultThumbUrl: null,
+          error: "",
+        })),
       );
-      const done: DoneItem[] = [];
-
-      try {
-        // PDF mobile guard: cap pages rendered and lower render scale.
-        const opts = {
-          maxPages: d.lowMemory && engine === "pdf2img" ? 30 : undefined,
-          scale: d.lowMemory && engine === "pdf2img" ? 1.5 : undefined,
-          onProgress: (_r: number, label: string) => setStatusLabel(label),
-          onInfo: (message: string) => setInfo(message),
-        };
-
-        for (let i = 0; i < files.length; i++) {
-          const outputs = await convertFile(files[i], engine, to, opts);
-          for (const result of outputs) {
-            done.push({ result, url: URL.createObjectURL(result.blob) });
-          }
-          setProgress({ done: i + 1, total: files.length });
-
-          if (d.lowMemory && i < files.length - 1) {
-            setStatusLabel("Optimizing memory…");
-            await breathe(150);
-            setStatusLabel("Converting on your device…");
-          }
-        }
-        setItems((prev) => [...done, ...prev]);
-        setStatus("done");
-      } catch (e) {
-        console.error("[ZeroUpload] conversion error:", e);
-        const msg =
-          e instanceof Error
-            ? e.message
-            : typeof e === "string"
-              ? e
-              : "Something went wrong converting that file.";
-        setError(msg);
-        setStatus("error");
-      } finally {
-        setProgress(null);
-      }
+      void runConversion(toId, current);
     },
-    [engine, to, device, validateBatch],
+    [runConversion],
   );
 
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragging(false);
-      handleFiles(e.dataTransfer.files);
-    },
-    [handleFiles],
-  );
-
-  useEffect(() => {
-    return () => {
-      items.forEach((i) => URL.revokeObjectURL(i.url));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const removeItem = useCallback((id: string) => {
+    const it = itemsRef.current.find((x) => x.id === id);
+    if (it) {
+      if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
+      it.outputs.forEach((o) => URL.revokeObjectURL(o.url));
+    }
+    setItems((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
-  const reset = () => {
-    items.forEach((i) => URL.revokeObjectURL(i.url));
+  const reset = useCallback(() => {
+    runTokenRef.current++;
+    itemsRef.current.forEach((it) => {
+      if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
+      it.outputs.forEach((o) => URL.revokeObjectURL(o.url));
+    });
     setItems([]);
-    setStatus("idle");
     setError("");
     setInfo("");
     if (inputRef.current) inputRef.current.value = "";
+  }, []);
+
+  // Revoke every object URL on unmount.
+  useEffect(() => {
+    return () => {
+      runTokenRef.current++;
+      itemsRef.current.forEach((it) => {
+        if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
+        it.outputs.forEach((o) => URL.revokeObjectURL(o.url));
+      });
+    };
+  }, []);
+
+  const onDrop = useCallback(
+    (e: DragEvent) => {
+      e.preventDefault();
+      setDragging(false);
+      void addFiles(e.dataTransfer.files);
+    },
+    [addFiles],
+  );
+
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      inputRef.current?.click();
+    }
   };
 
-  const working = status === "working";
+  const hasItems = items.length > 0;
+  const busy = items.some((it) => it.status === "converting");
+  const device = useMemo(
+    () => detectDevice(targetIsBig(selectedTo)),
+    [targetIsBig, selectedTo],
+  );
 
   return (
     <div className="w-full">
+      {/* ---- control bar: source -> target picker ---- */}
+      <div className="mb-4 flex flex-wrap items-end justify-center gap-3 sm:gap-4">
+        {lockedFrom && (
+          <>
+            <div className="flex flex-col">
+              <span className="mb-1.5 font-display text-sm font-medium text-ink">
+                From
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-mist bg-surface-2 px-4 py-3 text-sm font-medium text-ink">
+                <FormatGlyph
+                  format={lockedFrom}
+                  className="h-4 w-4 text-accent"
+                />
+                {lockedFromName ?? lockedFrom.toUpperCase()}
+              </span>
+            </div>
+            <div aria-hidden="true" className="pb-3 text-stone">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </div>
+          </>
+        )}
+        <Dropdown
+          label={lockedFrom ? "To" : "Convert to"}
+          ariaLabel="Target format"
+          options={targetOptions}
+          value={selectedTo}
+          onChange={changeTarget}
+          className="w-44"
+        />
+      </div>
+
+      {/* ---- file-first drop zone (the hero) ---- */}
       <div
         role="button"
         tabIndex={0}
-        aria-disabled={working}
-        onClick={() => !working && inputRef.current?.click()}
-        onKeyDown={(e) => {
-          if (!working && (e.key === "Enter" || e.key === " ")) inputRef.current?.click();
-        }}
+        aria-label={`Add files to convert to ${targetName}`}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={onKey}
         onDragOver={(e) => {
           e.preventDefault();
-          if (!working) setDragging(true);
+          setDragging(true);
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={[
-          "group relative flex w-full cursor-pointer flex-col items-center justify-center",
-          "rounded-[var(--radius-xl)] border-2 border-dashed px-8 py-16 text-center transition-all duration-200",
-          dragging ? "border-accent bg-accent-soft" : "border-mist bg-paper hover:border-accent/60",
-          working ? "cursor-progress" : "",
+          "relative flex w-full cursor-pointer flex-col items-center justify-center text-center",
+          "rounded-[var(--radius-xl)] border-2 border-dashed transition-colors duration-200",
+          hasItems ? "px-6 py-8" : "px-8 py-16",
+          justDropped ? "animate-drop-react" : "",
+          dragging
+            ? "border-accent bg-accent-soft"
+            : "border-mist bg-surface-1 hover:border-accent",
         ].join(" ")}
       >
-        {/* On-device glow — Atelier signature */}
-        <div
-          aria-hidden="true"
-          className="animate-dropzone-glow pointer-events-none absolute inset-0 z-0 rounded-[var(--radius-xl)]"
-          style={{
-            background:
-              "radial-gradient(circle at 50% 45%, var(--color-accent-soft), transparent 70%)",
-          }}
-        />
-        {status === "done" && (
-          <div
-            aria-hidden="true"
-            className="animate-shimmer pointer-events-none absolute inset-0 z-20 rounded-[var(--radius-xl)] bg-gradient-to-r from-transparent via-paper/70 to-transparent"
-          />
-        )}
         <input
           ref={inputRef}
           type="file"
           accept={accept}
           multiple
           className="hidden"
-          onChange={(e) => handleFiles(e.target.files)}
+          onChange={(e) => {
+            void addFiles(e.target.files);
+            e.currentTarget.value = "";
+          }}
         />
 
-        {working ? (
-          <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="h-7 w-7 animate-spin rounded-full border-2 border-mist border-t-accent" />
-            <p className="text-sm font-medium text-ink">{statusLabel}</p>
-            {progress && progress.total > 1 && (
-              <p className="text-xs text-stone">{progress.done} of {progress.total} done</p>
-            )}
-          </div>
-        ) : (
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 16V4" />
-                <path d="m6 10 6-6 6 6" />
-                <path d="M4 20h16" />
-              </svg>
-            </div>
-            <p className="font-display text-xl text-ink">
-              Drop your {fromName} {items.length ? "files" : "file"} here
-            </p>
-            <p className="mt-1 text-sm text-stone">
-              or click to choose — converted to {toName} instantly, on your device
-            </p>
-            {device?.lowMemory && (
-              <p className="mt-3 text-xs text-stone/80">
-                Optimised for this device: up to {device.maxFiles} file(s),{" "}
-                {prettyBytes(device.maxFileBytes)} each.
-              </p>
-            )}
-          </div>
+        <div
+          className={[
+            "flex items-center justify-center rounded-full bg-accent-soft text-accent",
+            hasItems ? "mb-2 h-9 w-9" : "mb-4 h-12 w-12",
+          ].join(" ")}
+        >
+          <svg
+            width={hasItems ? 18 : 22}
+            height={hasItems ? 18 : 22}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 16V4" />
+            <path d="m6 10 6-6 6 6" />
+            <path d="M4 20h16" />
+          </svg>
+        </div>
+
+        <p
+          className={[
+            "font-display text-ink",
+            hasItems ? "text-base" : "text-xl",
+          ].join(" ")}
+        >
+          {hasItems
+            ? "Drop more files"
+            : `Drop your ${lockedFromName ?? "file"}${lockedFrom ? "" : "s"} here`}
+        </p>
+        {!hasItems && (
+          <p className="mt-1 text-sm text-stone">
+            or click to choose — converted to {targetName} on your device
+          </p>
+        )}
+        {!hasItems && device.lowMemory && (
+          <p className="mt-3 text-xs text-stone">
+            Optimised for this device: up to {device.maxFiles} file(s),{" "}
+            {prettyBytes(device.maxFileBytes)} each.
+          </p>
         )}
       </div>
 
       <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone">
-        <svg className="animate-wifi-pulse" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          className="animate-wifi-pulse"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
         </svg>
         Nothing is uploaded. Your files never leave this browser.
       </p>
 
       {error && (
-        <div className="mt-4 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
+        <div className="mt-4 rounded-[var(--radius-md)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
           {error}
         </div>
       )}
-
       {info && (
-        <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
+        <div className="mt-4 rounded-[var(--radius-md)] border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
           {info}
         </div>
       )}
 
-      {items.length > 0 && (
+      {/* ---- file cards ---- */}
+      {hasItems && (
         <div className="mt-6 space-y-3">
           {items.map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between gap-4 rounded-xl border border-mist bg-paper px-4 py-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-ink">{item.result.filename}</p>
-                <p className="text-xs text-stone">
-                  {prettyBytes(item.result.blob.size)} ·{" "}
-                  <span className="font-mono">done in {item.result.ms}ms</span>
-                </p>
-              </div>
-              <a
-                href={item.url}
-                download={item.result.filename}
-                className="shrink-0 rounded-full bg-ink px-5 py-2 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
-              >
-                Download
-              </a>
-            </div>
+            <FileCard
+              key={item.id}
+              item={item}
+              index={idx}
+              onRemove={() => removeItem(item.id)}
+            />
           ))}
-          <button onClick={reset} className="text-sm text-stone underline-offset-4 hover:underline">
-            Convert more files
-          </button>
+
+          <div className="flex items-center justify-between pt-1">
+            <button
+              onClick={reset}
+              disabled={busy}
+              className="text-sm text-stone underline-offset-4 transition-colors hover:text-ink hover:underline disabled:opacity-50"
+            >
+              Clear all
+            </button>
+            <button
+              onClick={() => inputRef.current?.click()}
+              className="text-sm font-medium text-accent underline-offset-4 hover:underline"
+            >
+              Add more files
+            </button>
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* =================== file card =================== */
+
+function savingsPct(orig: number, out: number): number | null {
+  if (!orig || !out) return null;
+  return Math.round((1 - out / orig) * 100);
+}
+
+interface FileCardProps {
+  item: FileItem;
+  index: number;
+  onRemove: () => void;
+}
+
+function FileCard({ item, index, onRemove }: FileCardProps) {
+  const { file, status, previewUrl } = item;
+  const single = item.outputs.length === 1 ? item.outputs[0] : null;
+  const multi = item.outputs.length > 1;
+  const pct =
+    status === "done" && single ? savingsPct(file.size, item.outBytes) : null;
+
+  const thumbUrl =
+    status === "done" && item.resultThumbUrl ? item.resultThumbUrl : previewUrl;
+
+  // Local image-load state so a failed source preview (e.g. HEIC) doesn't keep
+  // a later, valid result thumbnail hidden. Resets whenever the source changes.
+  const [imgError, setImgError] = useState(false);
+  useEffect(() => {
+    setImgError(false);
+  }, [thumbUrl]);
+  const showImg = !!thumbUrl && !imgError;
+
+  return (
+    <div
+      className="animate-card-in flex items-center gap-4 rounded-[var(--radius-lg)] border border-mist bg-surface-2 p-3 shadow-[var(--shadow-1)] sm:p-4"
+      style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
+    >
+      {/* preview / glyph */}
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-mist bg-canvas">
+        {showImg ? (
+          <img
+            src={thumbUrl}
+            alt=""
+            className="h-full w-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-stone">
+            <FormatGlyph format={item.fromId} className="h-6 w-6" />
+          </div>
+        )}
+        {status === "converting" && (
+          <div className="bg-canvas/60 absolute inset-0 flex items-center justify-center">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-mist border-t-accent" />
+          </div>
+        )}
+      </div>
+
+      {/* meta */}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-ink">{file.name}</p>
+
+        {status === "converting" && (
+          <div className="mt-1.5">
+            <p className="truncate text-xs text-stone">{item.progressLabel}</p>
+            <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-mist">
+              <div className="animate-progress-sweep h-full w-1/3 rounded-full bg-accent" />
+            </div>
+          </div>
+        )}
+
+        {status === "preview" && (
+          <p className="mt-1 text-xs text-stone">
+            {prettyBytes(file.size)} · queued
+          </p>
+        )}
+
+        {status === "error" && (
+          <p className="mt-1 text-xs text-danger">{item.error}</p>
+        )}
+
+        {status === "done" && (
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-mono text-xs text-stone">
+              {prettyBytes(file.size)}
+              <span className="mx-1 text-faint">→</span>
+              {prettyBytes(item.outBytes)}
+            </span>
+            {pct !== null && pct > 0 && (
+              <span className="animate-settle rounded-full bg-accent-soft px-2 py-0.5 font-mono text-xs font-semibold text-accent">
+                {pct}% smaller
+              </span>
+            )}
+            {pct !== null && pct <= 0 && (
+              <span className="rounded-full bg-brass-soft px-2 py-0.5 font-mono text-xs font-semibold text-brass">
+                {Math.abs(pct)}% larger
+              </span>
+            )}
+            {multi && (
+              <span className="font-mono text-xs text-stone">
+                {item.outputs.length} files · {prettyBytes(item.outBytes)}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* action */}
+      <div className="flex shrink-0 items-center gap-1.5">
+        {status === "done" && single && (
+          <a
+            href={single.url}
+            download={single.result.filename}
+            className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
+          >
+            Download
+          </a>
+        )}
+        {status === "done" && multi && (
+          <div className="flex max-w-[160px] flex-wrap justify-end gap-1.5">
+            {item.outputs.map((o, i) => (
+              <a
+                key={i}
+                href={o.url}
+                download={o.result.filename}
+                className="rounded-full border border-mist bg-surface-1 px-3 py-1 text-xs font-medium text-ink transition-colors hover:border-accent"
+              >
+                {i + 1}
+              </a>
+            ))}
+          </div>
+        )}
+        {status !== "converting" && (
+          <button
+            onClick={onRemove}
+            aria-label={`Remove ${file.name}`}
+            className="hover:bg-canvas flex h-8 w-8 items-center justify-center rounded-full text-stone transition-colors hover:text-ink"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
