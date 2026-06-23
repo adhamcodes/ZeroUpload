@@ -2,7 +2,7 @@
   "id": "FEAT-004",
   "type": "feat",
   "description": "Hub pages + converter pages composition upgrade: apply depth/texture backdrop, tighten vertical spacing, strengthen type hierarchy, apply the new design system tokens to all pages. Update [from]-to-[to].astro converter page to use the overhauled Converter component naturally. Ensure dark mode is premium across all pages.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Update src/layouts/Layout.astro: add the bg-grain texture class to the <body> element (or a wrapper div inside main) so all pages have the subtle texture backdrop. Ensure the body uses bg-canvas (already does) with the grain overlay. This gives depth to the entire site.",
     "Update src/pages/[from]-to-[to].astro (the converter pages): tighten the hero section vertical spacing (reduce pt-16 to pt-12, pb-8 to pb-4). The converter section is already max-w-2xl which is good. Ensure the Converter component section has no excessive padding since the Converter itself now shows file cards that need room. Add a subtle surface-elevated class to the section wrapping the Converter to give it a card-like elevated feel against the textured background.",

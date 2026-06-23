@@ -37,7 +37,7 @@ const jsonLd = [
 
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <!-- Hero -->
-  <section class="mx-auto max-w-3xl px-6 pt-16 pb-8 text-center">
+  <section class="mx-auto max-w-3xl px-6 pt-12 pb-4 text-center">
     <span
       class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
     >
@@ -45,7 +45,7 @@ const jsonLd = [
       100% private · nothing is ever uploaded
     </span>
 
-    <h1 class="mt-6 font-display text-4xl tracking-tight sm:text-5xl">
+    <h1 class="mt-6 font-display text-4xl leading-tight tracking-tight sm:text-5xl">
       Text Extraction (OCR)
     </h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
@@ -60,19 +60,21 @@ const jsonLd = [
   </section>
 
   <!-- Format Picker -->
-  <section class="mx-auto max-w-2xl px-6 py-8">
-    <FormatPicker
-      client:load
-      sources={sources}
-      targets={targets}
-      defaultFrom="jpg"
-      defaultTo="txt"
-      comingSoon={true}
-    />
+  <section class="mx-auto max-w-2xl px-6 py-6">
+    <div class="surface-raised rounded-[var(--radius-xl)] p-6">
+      <FormatPicker
+        client:load
+        sources={sources}
+        targets={targets}
+        defaultFrom="jpg"
+        defaultTo="txt"
+        comingSoon={true}
+      />
+    </div>
   </section>
 
   <!-- Tool Grid -->
-  <section class="mx-auto max-w-5xl px-6 py-8">
+  <section class="mx-auto max-w-5xl px-6 py-6">
     <h2 class="font-display text-2xl">OCR tools</h2>
     <p class="mt-1 text-stone">All processing happens on your device.</p>
     <div class="mt-8">

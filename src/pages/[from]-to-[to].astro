@@ -84,7 +84,7 @@ const accept = c.from.accept ?? `.${c.from.id},${c.from.mime}`;
 ---
 
 <Layout title={pageTitle(c)} description={metaDescription(c)} jsonLd={jsonLd}>
-  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
+  <section class="mx-auto max-w-2xl px-6 pt-12 pb-4 text-center">
     <p class="text-sm font-medium uppercase tracking-wider text-accent">
       {c.from.name} &rarr; {c.to.name}
     </p>
@@ -98,6 +98,7 @@ const accept = c.from.accept ?? `.${c.from.id},${c.from.mime}`;
   </section>
 
   <section class="mx-auto max-w-2xl px-6 pb-8">
+    <div class="surface-elevated rounded-[var(--radius-xl)] p-6">
     <Converter
       client:load
       engine={c.engine}
@@ -106,6 +107,7 @@ const accept = c.from.accept ?? `.${c.from.id},${c.from.mime}`;
       toName={c.to.name}
       accept={accept}
     />
+    </div>
   </section>
 
   <!-- Unique intro (assembled from both formats) -->
