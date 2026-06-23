@@ -11,9 +11,11 @@ about real risks.
 
 FIRST: read context.md, roadmap.md, UPGRADE-PLAN.md, and the skills in
 .kiro/skills/ (frontend-design-principles, zeroupload-brand-system,
-client-side-conversion-playbook). Follow them. The MOTTO is sacred: 100%
-in-browser, no upload, no server, no external API for files, no signup, no
-leaving the page, $0 cost. If a feature can't meet the motto, do not ship it.
+client-side-conversion-playbook). Follow them. Our COMPANY MOTTO is "Your Files
+Are Nobody's Business" — lead with it in copy. Our MANDATORY REQUIREMENTS (the
+how that delivers the motto) are sacred: 100% in-browser, no upload, no server,
+no external API for files, no signup, no leaving the page, $0 cost. If a feature
+can't meet these requirements, do not ship it.
 
 PRINCIPLE: each media type gets the tools that fit ITS nature. Do NOT force
 PDF's "merge/split" onto images. Every tool becomes its own SEO page.
