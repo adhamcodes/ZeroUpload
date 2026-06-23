@@ -1,25 +1,40 @@
 ---
 name: zeroupload-brand-system
-description: The brand system and product rules for ZeroUpload (the 100%-in-browser file converter). Use on EVERY page/component to keep the "Quiet Luxury" look, the UX flow, and the sacred privacy motto consistent. Defines design tokens, voice, the category-hub IA, and the non-negotiable constraints.
+description: The brand system and product rules for ZeroUpload (the 100%-in-browser file converter). Use on EVERY page/component to keep the "Quiet Luxury" look, the UX flow, the company motto, and the mandatory technical requirements consistent. Defines design tokens, voice, the category-hub IA, and the non-negotiable constraints.
 ---
 
 # ZeroUpload — Brand System & Product Rules
 
 The source of truth for how ZeroUpload looks, feels, and behaves. Pair with `frontend-design-principles` and `client-side-conversion-playbook`.
 
-## 🛑 THE SACRED MOTTO (never break — this IS the product)
+## 🏛️ COMPANY MOTTO (the brand line — the promise we sell)
+
+> ## "Your Files Are Nobody's Business."
+
+This is the official public motto. It's the *feeling* and the promise. Lead with
+it in the hero, the About page, and the brand voice. (It already lives on the
+homepage and in the privacy policy — keep it consistent everywhere.)
+Supporting tagline/descriptor: "Convert files without uploading a thing."
+
+## 🛑 MANDATORY REQUIREMENTS (the non-negotiable HOW — never break)
+
+These technical rules are what *deliver* the motto. They are **requirements**, not
+the motto itself. The motto is the promise; these are how we keep it.
+
 - **No upload.** Files never leave the device. Everything runs in-browser (Canvas/WASM).
 - **No server. No database. No backend.** Static site only.
 - **No external API** for processing user files.
 - **No signup. No login. No leaving the page** to do the core task.
 - **$0 operating cost.** If a feature can't meet all of the above, it does NOT ship (or ships only as a clearly-labeled experiment that still never uploads).
 
-If a proposed feature violates the motto, reject it or find an in-browser alternative. The name is the promise.
+If a proposed feature violates these requirements, reject it or find an in-browser
+alternative. We never break a requirement, because each one protects the motto:
+*your files are nobody's business.*
 
 ## Brand essence
-- Private, instant, unlimited, beautiful. "Convert files without uploading a thing."
+- Private, instant, unlimited, beautiful.
 - Personality: calm, confident, premium, trustworthy. Quiet Luxury — restraint over flash.
-- The proof: it works offline. Lean on that everywhere.
+- The proof: it works offline. Lean on that everywhere — it's how we *prove* the motto.
 
 ## Aesthetic: "Quiet Luxury"
 Generous whitespace, refined typography, one restrained accent, soft depth, buttery micro-interactions. Nothing shouts. The drop zone is the hero.
@@ -40,11 +55,13 @@ The whole point: **drop → pick → done, without hunting.**
 - Keep it one-page: no redirects to do the task.
 
 ## Voice & copy
-Confident, plain, a little proud of the privacy stance. ✅ "Drop it. It converts on your device. Nothing is uploaded." ❌ hype/exclamation spam. Be honest about limits (e.g., OCR accuracy, animated GIF first-frame).
+Confident, plain, a little proud of the privacy stance. ✅ "Drop it. It converts on your device. Nothing is uploaded." ❌ hype/exclamation spam. Be honest about limits (e.g., OCR accuracy, animated GIF first-frame). Echo the motto where natural.
 
 ## Do / Don't
-- ✅ Whitespace, Fraunces headlines, single green accent, calm motion, offline-proof messaging, accessible, fast.
-- ❌ Multiple accents, cluttered tool UI, uploads/servers/signups, hype copy, dark-pattern "pro" walls, anything that betrays the motto.
+- ✅ Whitespace, Fraunces headlines, single green accent, calm motion, offline-proof messaging, accessible, fast, the motto front-and-centre.
+- ❌ Multiple accents, cluttered tool UI, uploads/servers/signups, hype copy, dark-pattern "pro" walls, anything that betrays a requirement (and therefore the motto).
 
 ## The test
-Could a competitor copy this without a server? If our feature needs one, we've left the motto. Stay in-browser, stay private, stay $0.
+Could a competitor copy this without a server? If our feature needs one, we've
+broken a requirement — and broken the promise that your files are nobody's
+business. Stay in-browser, stay private, stay $0.
