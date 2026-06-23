@@ -1,25 +1,35 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import FormatPicker from "../components/FormatPicker.tsx";
+import Converter from "../components/Converter.tsx";
 import ToolGrid from "../components/ToolGrid.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
-import { conversionsByCategory } from "../data/conversions";
+import {
+  conversionsByCategory,
+  CONVERSIONS,
+  FORMAT_BY_ID,
+} from "../data/conversions";
 
 const list = conversionsByCategory("document");
 
-const sources = [
-  { id: "pdf", name: "PDF" },
-  { id: "jpg", name: "JPG" },
-  { id: "jpeg", name: "JPEG" },
-  { id: "png", name: "PNG" },
-  { id: "webp", name: "WEBP" },
-];
-
-const targets = [
-  { id: "pdf", name: "PDF" },
-  { id: "jpg", name: "JPG" },
-  { id: "png", name: "PNG" },
-];
+// File-first converter wiring (data-driven; engines untouched).
+const sourceIds = ["pdf", "jpg", "jpeg", "png", "webp"];
+const targetIds = ["pdf", "jpg", "png"];
+const allowedEngines = new Set(["pdf2img", "img2pdf"]);
+const pairs = CONVERSIONS.filter(
+  (c) =>
+    allowedEngines.has(c.engine) &&
+    sourceIds.includes(c.from.id) &&
+    targetIds.includes(c.to.id),
+);
+const engineMap = Object.fromEntries(
+  pairs.map((c) => [`${c.from.id}-${c.to.id}`, c.engine]),
+);
+const sources = sourceIds.map((id) => ({
+  id,
+  name: FORMAT_BY_ID[id].name,
+  accept: FORMAT_BY_ID[id].accept ?? `.${id},${FORMAT_BY_ID[id].mime}`,
+}));
+const targets = targetIds.map((id) => ({ id, name: FORMAT_BY_ID[id].name }));
 
 const tools = [
   { name: "Merge PDF", description: "Combine multiple PDFs into one", href: "#", comingSoon: true },
@@ -65,14 +75,14 @@ const jsonLd = [
     </p>
   </section>
 
-  <!-- Format Picker -->
+  <!-- File-first converter -->
   <section class="mx-auto max-w-2xl px-6 py-8">
-    <FormatPicker
+    <Converter
       client:load
       sources={sources}
       targets={targets}
-      defaultFrom="pdf"
-      defaultTo="jpg"
+      engineMap={engineMap}
+      defaultTo="pdf"
     />
   </section>
 

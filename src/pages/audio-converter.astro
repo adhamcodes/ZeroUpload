@@ -1,21 +1,35 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import FormatPicker from "../components/FormatPicker.tsx";
+import Converter from "../components/Converter.tsx";
 import ToolGrid from "../components/ToolGrid.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
-import { conversionsByCategory, CATEGORIES } from "../data/conversions";
+import {
+  conversionsByCategory,
+  CATEGORIES,
+  CONVERSIONS,
+  FORMAT_BY_ID,
+} from "../data/conversions";
 
 const cat = CATEGORIES.audio;
 const list = conversionsByCategory("audio");
 
-const formats = [
-  { id: "mp3", name: "MP3" },
-  { id: "wav", name: "WAV" },
-  { id: "ogg", name: "OGG" },
-  { id: "m4a", name: "M4A" },
-  { id: "flac", name: "FLAC" },
-  { id: "aac", name: "AAC" },
-];
+// File-first converter wiring (data-driven; engines untouched).
+const formatIds = ["mp3", "wav", "ogg", "m4a", "flac", "aac"];
+const pairs = CONVERSIONS.filter(
+  (c) =>
+    c.engine === "audio" &&
+    formatIds.includes(c.from.id) &&
+    formatIds.includes(c.to.id),
+);
+const engineMap = Object.fromEntries(
+  pairs.map((c) => [`${c.from.id}-${c.to.id}`, c.engine]),
+);
+const sources = formatIds.map((id) => ({
+  id,
+  name: FORMAT_BY_ID[id].name,
+  accept: FORMAT_BY_ID[id].accept ?? `.${id},${FORMAT_BY_ID[id].mime}`,
+}));
+const targets = formatIds.map((id) => ({ id, name: FORMAT_BY_ID[id].name }));
 
 const tools = [
   { name: "Trim/Cut Audio", description: "Cut a section from an audio file", href: "#", comingSoon: true },
@@ -57,14 +71,14 @@ const jsonLd = [
     </p>
   </section>
 
-  <!-- Format Picker -->
+  <!-- File-first converter -->
   <section class="mx-auto max-w-2xl px-6 py-8">
-    <FormatPicker
+    <Converter
       client:load
-      sources={formats}
-      targets={formats}
-      defaultFrom="mp3"
-      defaultTo="wav"
+      sources={sources}
+      targets={targets}
+      engineMap={engineMap}
+      defaultTo="mp3"
     />
   </section>
 
