@@ -1,8 +1,9 @@
 # ZeroUpload V2 — Gold-Tier Upgrade Plan
 
 Goal: become the most-searched private file tool of 2026–2027 — without EVER
-breaking the motto (no upload, no server, no signup, no leaving the page, no
-external API for files, $0 cost). Every tool below is 100% in-browser.
+breaking our mandatory requirements, which deliver our company motto **"Your
+Files Are Nobody's Business"** (no upload, no server, no signup, no leaving the
+page, no external API for files, $0 cost). Every tool below is 100% in-browser.
 
 ## Core principle: each media type gets tools that fit ITS nature
 "Merge/split" is a PDF (document/page) concept — we do NOT force it onto images

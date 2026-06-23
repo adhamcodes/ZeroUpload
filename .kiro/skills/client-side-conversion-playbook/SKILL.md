@@ -5,7 +5,7 @@ description: Engineering playbook for building 100%-in-browser file conversion/p
 
 # Client-Side Conversion Playbook
 
-Battle-tested rules for adding in-browser conversion features without breaking the motto or the existing engines. Read before touching anything in `src/lib/`.
+Battle-tested rules for adding in-browser conversion features without breaking the mandatory requirements or the existing engines. Read before touching anything in `src/lib/`. (Company motto: "Your Files Are Nobody's Business." These requirements are how we keep it.)
 
 ## Architecture (how ZeroUpload works)
 - **Astro 5 (static) + React islands + Tailwind v4**, deployed on Cloudflare Pages. Build `npm run build` → `dist/`.
@@ -35,7 +35,7 @@ Battle-tested rules for adding in-browser conversion features without breaking t
 - 🚫 **Video transcode:** memory-crashes mobile browsers. Excluded by design.
 
 ## Adding a new tool (checklist)
-1. Confirm it passes the **motto** (in-browser, no server, no upload, $0).
+1. Confirm it passes the **mandatory requirements** (in-browser, no server, no upload, $0).
 2. Add the engine in `src/lib/engines/` behind the `convert()` dispatcher shape; lazy-load it.
 3. If it ships a >25 MiB asset, split it (lesson #2) and self-host.
 4. Wire device/memory guards (lesson #5) and real error surfacing (lesson #6).
