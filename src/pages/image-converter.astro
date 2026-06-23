@@ -1,30 +1,37 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import FormatPicker from "../components/FormatPicker.tsx";
+import Converter from "../components/Converter.tsx";
 import ToolGrid from "../components/ToolGrid.astro";
 import ConversionGrid from "../components/ConversionGrid.astro";
-import { conversionsByCategory, CATEGORIES } from "../data/conversions";
+import {
+  conversionsByCategory,
+  CATEGORIES,
+  CONVERSIONS,
+  FORMAT_BY_ID,
+} from "../data/conversions";
 
 const cat = CATEGORIES.image;
 const list = conversionsByCategory("image").filter((c) => c.engine !== "img2pdf");
 
-const sources = [
-  { id: "png", name: "PNG" },
-  { id: "jpg", name: "JPG" },
-  { id: "jpeg", name: "JPEG" },
-  { id: "webp", name: "WEBP" },
-  { id: "gif", name: "GIF" },
-  { id: "bmp", name: "BMP" },
-  { id: "svg", name: "SVG" },
-  { id: "heic", name: "HEIC" },
-];
-
-const targets = [
-  { id: "png", name: "PNG" },
-  { id: "jpg", name: "JPG" },
-  { id: "jpeg", name: "JPEG" },
-  { id: "webp", name: "WEBP" },
-];
+// File-first converter wiring (data-driven; engines untouched).
+const sourceIds = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "svg", "heic"];
+const targetIds = ["png", "jpg", "jpeg", "webp"];
+const allowedEngines = new Set(["image", "heic"]);
+const pairs = CONVERSIONS.filter(
+  (c) =>
+    allowedEngines.has(c.engine) &&
+    sourceIds.includes(c.from.id) &&
+    targetIds.includes(c.to.id),
+);
+const engineMap = Object.fromEntries(
+  pairs.map((c) => [`${c.from.id}-${c.to.id}`, c.engine]),
+);
+const sources = sourceIds.map((id) => ({
+  id,
+  name: FORMAT_BY_ID[id].name,
+  accept: FORMAT_BY_ID[id].accept ?? `.${id},${FORMAT_BY_ID[id].mime}`,
+}));
+const targets = targetIds.map((id) => ({ id, name: FORMAT_BY_ID[id].name }));
 
 const tools = [
   { name: "Compress Image", description: "Reduce image file size", href: "#", comingSoon: true },
@@ -67,14 +74,14 @@ const jsonLd = [
     </p>
   </section>
 
-  <!-- Format Picker -->
+  <!-- File-first converter -->
   <section class="mx-auto max-w-2xl px-6 py-8">
-    <FormatPicker
+    <Converter
       client:load
       sources={sources}
       targets={targets}
-      defaultFrom="png"
-      defaultTo="jpg"
+      engineMap={engineMap}
+      defaultTo="png"
     />
   </section>
 

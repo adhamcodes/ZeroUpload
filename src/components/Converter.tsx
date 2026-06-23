@@ -237,7 +237,10 @@ export default function Converter({
         if (!engine) {
           patchItem(item.id, {
             status: "error",
-            error: `Can't convert ${item.fromId.toUpperCase()} to ${toId.toUpperCase()}.`,
+            error:
+              item.fromId === toId
+                ? `Already a ${toId.toUpperCase()} file — nothing to convert.`
+                : `Can't convert ${item.fromId.toUpperCase()} to ${toId.toUpperCase()}.`,
           });
           continue;
         }
