@@ -1,0 +1,42 @@
+{
+  "project_type": "Astro 5 static site with React islands, Tailwind v4, deployed on Cloudflare Pages",
+  "language": "TypeScript/TSX + Astro",
+  "build_system": "Astro (vite under the hood). npm scripts: dev, build, preview. prebuild runs scripts/copy-ffmpeg.mjs",
+  "test_framework": "No test framework present. Verification is structural (TypeScript type-checking + build success) and manual browser testing on Cloudflare preview",
+  "build_command": "npm run build (NOT available in this sandbox - no network)",
+  "test_command": "No automated tests. Structural review + Astro build is the test.",
+  "verification_instructions": "Since sandbox has no network (INTEGRATIONS_ONLY): 1) Verify TypeScript correctness by reading code 2) Verify all imports resolve to real files 3) Verify Tailwind classes use defined tokens 4) Verify no engine files (src/lib/*) are modified 5) Structural/semantic self-review. The user build-verifies PRs externally before merge.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "Cannot install/build in this sandbox. Work is purely code authoring and PR submission.",
+  "environment_constraints": "INTEGRATIONS_ONLY network - NO npm install, NO npm run build, NO external package downloads. GitHub is accessible via Power tools for push/PR. User verifies builds externally. Do NOT modify engine files (src/lib/convert.ts, src/lib/convertImage.ts, src/lib/engines/*, scripts/copy-ffmpeg.mjs).",
+  "contribution_requirements": "Push feature branches, open PRs to main. Small reviewable PRs. SACRED: never modify engine logic. Respect Atelier token system (extend, dont fork). WCAG AA contrast. Full keyboard accessibility. Responsive 320px-1440px+. prefers-reduced-motion support. Motto must remain prominent.",
+  "key_patterns": {
+    "component_style": "Astro (.astro) for static pages/layouts, React (.tsx) for interactive islands with client:load directive",
+    "styling": "Tailwind v4 with custom @theme tokens in global.css. Classes reference tokens directly (bg-canvas, text-ink, border-mist, font-display). oklch color space.",
+    "state_management": "React useState/useCallback hooks in islands. No external state library.",
+    "file_structure": "src/pages/ for routes (including dynamic [from]-to-[to].astro), src/components/ for reusable pieces, src/lib/ for conversion engines (SACRED), src/data/ for content/config, src/layouts/ for page shells",
+    "dark_mode": "data-theme='dark' attribute on html element, toggled by Header.astro script, persisted to localStorage. Tokens override in [data-theme='dark'] block in global.css",
+    "format_picker": "FormatPicker.tsx uses native <select> elements - MUST be replaced with custom dropdown",
+    "converter_widget": "Converter.tsx handles file input, drag/drop, conversion dispatch, progress, results. Has ambient glow div (MUST REMOVE). Results are minimal text rows (MUST upgrade to reward cards).",
+    "hub_pages": "pdf.astro, image-converter.astro, audio-converter.astro, text.astro - all follow same structure: hero > FormatPicker > ToolGrid > ConversionGrid"
+  },
+  "relevant_files": [
+    "src/styles/global.css",
+    "src/components/FormatPicker.tsx",
+    "src/components/Converter.tsx",
+    "src/components/Header.astro",
+    "src/components/Footer.astro",
+    "src/components/ToolGrid.astro",
+    "src/components/ConversionGrid.astro",
+    "src/layouts/Layout.astro",
+    "src/pages/index.astro",
+    "src/pages/[from]-to-[to].astro",
+    "src/pages/pdf.astro",
+    "src/pages/image-converter.astro",
+    "src/pages/audio-converter.astro",
+    "src/pages/text.astro",
+    "src/data/conversions.ts",
+    "src/lib/convert.ts"
+  ],
+  "directory_structure": "src/pages/ (routes), src/components/ (UI), src/lib/ (engines - DO NOT TOUCH), src/data/ (content), src/styles/ (global.css with Atelier tokens), src/layouts/ (Layout.astro shell), public/ (static assets)"
+}

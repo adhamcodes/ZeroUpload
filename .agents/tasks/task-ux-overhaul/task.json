@@ -1,0 +1,7 @@
+{
+  "task_id": "task-ux-overhaul",
+  "task_description": "Complete UX overhaul of ZeroUpload converter experience: file-first flow with previews, custom dropdown replacing native selects, result reward cards with size savings, batch cascade, layered depth/texture, premium dark mode (green-charcoal), removal of ambient glow, all while keeping engines untouched and privacy messaging intact.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004"],
+  "blocked_reason": null
+}

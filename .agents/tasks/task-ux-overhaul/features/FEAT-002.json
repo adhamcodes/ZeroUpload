@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Custom dropdown component (CustomSelect.tsx) replacing ALL native <select> elements across the app. Polished, accessible, with format icons, keyboard navigation, full ARIA. This is the single biggest 'cheap tell' fix.",
+  "status": "pending",
+  "steps": [
+    "Create src/components/CustomSelect.tsx - a React component that replaces native <select>. Props: options (array of {id, name}), value, onChange, label, id. Implementation: a button trigger showing current selection that opens a listbox overlay. Styling: rounded-[var(--radius-xl)] border border-mist bg-canvas, with the open dropdown using bg-paper border border-mist shadow-[var(--shadow-lifted)]. Selected option highlighted with bg-accent-soft. Options show format name in a clean sans font.",
+    "Implement full keyboard accessibility in CustomSelect.tsx: ArrowUp/ArrowDown to navigate options, Enter/Space to select, Escape to close, Home/End to jump. Tab moves focus away (closing the dropdown). Clicking outside closes it. Use aria-expanded, aria-activedescendant, role='listbox', role='option', aria-selected. Focus management: when opened, focus stays on the trigger button; aria-activedescendant points to the visually-focused option.",
+    "Add simple format type icons to CustomSelect options: a small inline SVG or text badge showing format category (image icon for image formats, document icon for PDF, audio icon for audio formats). Use the same icon style as ToolGrid.astro (18px, stroke 1.7, accent-soft background circle). The icon should appear to the left of the format name in each option row.",
+    "Refactor src/components/FormatPicker.tsx to use CustomSelect instead of native <select> elements. Replace both the 'From' and 'To' selects. Keep all existing logic (state, navigation, comingSoon, sameFormat warning) unchanged. The visual result should be two custom dropdowns with the arrow between them and the Convert button.",
+    "Ensure the custom dropdown works correctly on mobile (touch targets at least 44px, dropdown opens below/above based on viewport space, scroll-locks the body when open on mobile to prevent background scroll). Add a max-height with overflow-y-auto for long format lists (audio has 6 formats, images has 8)."
+  ],
+  "acceptance_criteria": [
+    "src/components/CustomSelect.tsx exists as a fully accessible custom dropdown",
+    "No native <select> elements remain in FormatPicker.tsx",
+    "Keyboard navigation works: Arrow keys, Enter, Escape, Home, End",
+    "ARIA attributes present: role='listbox', role='option', aria-expanded, aria-activedescendant, aria-selected",
+    "Format icons appear next to format names in the dropdown options",
+    "Dropdown is properly styled with Atelier tokens (no hard-coded colors)",
+    "CustomSelect respects dark mode (inherits from CSS custom properties)",
+    "Touch targets are at least 44px on mobile",
+    "Dropdown has max-height with scroll for long lists"
+  ],
+  "verification": [
+    "Read CustomSelect.tsx and confirm ARIA roles (listbox, option), keyboard handlers (ArrowUp, ArrowDown, Enter, Escape, Home, End), and focus management",
+    "Read FormatPicker.tsx and confirm no <select> or <option> elements remain",
+    "Confirm all className values use Atelier tokens (bg-canvas, border-mist, text-ink, etc.) not hard-coded colors"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,41 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Complete Converter.tsx overhaul: file-first flow with real previews (image thumbnails, PDF first-page, file glyph), batch cascade with staggered per-file progress, and result reward cards showing before/after size with % savings, result thumbnail, success settle animation, and bold download button.",
+  "status": "pending",
+  "steps": [
+    "Add a FileCard sub-component (can be in same file or a new src/components/FileCard.tsx) that displays a queued/processing file as a card: shows a REAL image thumbnail (via URL.createObjectURL for images), a PDF first-page render (using pdfjs-dist getPage/render to a small canvas - pdfjs-dist is already a dependency), or a tasteful file glyph SVG for other types. Card shows filename (truncated), file size in prettyBytes, and auto-detected source format from the MIME type or extension. Card styling: rounded-[var(--radius-xl)] border border-mist bg-paper p-4, with the thumbnail/glyph on the left and text on the right.",
+    "Refactor the Converter.tsx drop zone to implement file-first flow: when files are dropped/selected, IMMEDIATELY show them as FileCards in a grid/stack below the drop zone (before conversion starts). Auto-detect the source format from file.type or extension. Each FileCard shows its preview + a status indicator (queued/converting/done/error). The drop zone itself remains clickable for adding more files. Remove the ambient glow div entirely (the one with className containing animate-dropzone-glow).",
+    "Implement batch cascade in Converter.tsx: files convert in sequence (already the case) but now each FileCard updates its own status independently with a clear per-file progress indicator (a thin accent-colored progress bar at the bottom of the card, using the new progress-fill animation). When a file finishes, its card transitions to the 'done' state with the settle animation. The stagger creates a satisfying cascade effect as cards complete one by one.",
+    "Create the ResultCard display (replaces the current minimal text rows): each completed conversion shows a reward card with: (a) result thumbnail (small image preview for image outputs, document icon for PDF), (b) filename, (c) before-after size comparison in mono font showing original size, arrow, new size, and % savings calculated as ((original-new)/original*100) formatted like '2.4 MB -> 312 KB . 87% smaller' using font-mono text-sm, (d) a one-time settle/success animation (scale from 1.02 to 1 + opacity) using the new .animate-settle class, (e) a bold Download button styled as rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-canvas. The savings percentage should use text-success (pine/green) when file is smaller, and text-stone when file is larger.",
+    "Store original file size in the conversion flow: when handleFiles processes each file, capture file.size before conversion, and pass it through to the result items so ResultCard can compute and display the size difference. Update the DoneItem interface to include originalSize: number.",
+    "Ensure the entire converter respects prefers-reduced-motion: the settle animation, slide-up entrance of cards, and progress-fill should all be disabled/instant when reduced motion is preferred (they use the animation utilities from FEAT-001 which have the media query guard). The cascade stagger timing should still work (it is sequential processing, not animation).",
+    "Make the file cards and result cards responsive: on mobile (< 640px) cards stack vertically full-width. On tablet+ they can be in a 2-column grid if multiple files. The drop zone should have reduced vertical padding on mobile (py-10 instead of py-16) to leave room for file cards below.",
+    "Keep the privacy proof line ('Nothing is uploaded. Your files never leave this browser.') visible below the drop zone at all times, styled exactly as current (text-xs text-stone with shield icon). Remove the animate-wifi-pulse from the shield icon (it is ambient/decorative, not functional)."
+  ],
+  "acceptance_criteria": [
+    "Dropping/selecting files immediately shows FileCard(s) with real previews before conversion starts",
+    "Image files show actual thumbnail previews (object URL rendered in an <img>)",
+    "PDF files attempt to render first page (graceful fallback to document glyph if it fails)",
+    "Non-image/PDF files show a tasteful file-type glyph",
+    "The ambient glow div (animate-dropzone-glow) is completely removed from Converter.tsx",
+    "The wifi-pulse animation is removed from the privacy shield icon",
+    "Each file in a batch shows independent progress (not just a global counter)",
+    "Result cards display: thumbnail, filename, original size -> new size . X% smaller/larger, download button",
+    "Size comparison uses font-mono and shows percentage savings",
+    "Download button is prominent (bg-accent, rounded-full)",
+    "Success settle animation plays once per completed card",
+    "DoneItem interface includes originalSize for computing savings",
+    "Responsive: cards stack on mobile, grid on desktop",
+    "prefers-reduced-motion disables animations",
+    "No modifications to src/lib/convert.ts or any engine file",
+    "Privacy line remains visible at all times"
+  ],
+  "verification": [
+    "Read Converter.tsx and confirm: no animate-dropzone-glow div, no animate-wifi-pulse class, DoneItem has originalSize field, FileCard renders img/canvas/svg glyph based on file type, result display shows size comparison math, settle animation class applied to result cards",
+    "Confirm no imports from or modifications to src/lib/convert.ts, src/lib/convertImage.ts, or src/lib/engines/*",
+    "Verify responsive classes present (grid-cols-1 sm:grid-cols-2 or similar pattern)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

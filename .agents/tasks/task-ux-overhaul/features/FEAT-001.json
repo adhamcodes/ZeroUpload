@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Design system upgrade: extend Atelier tokens for depth/texture/layering, premium dark mode (green-charcoal with elevation, not flat black), remove ambient glow animation, add functional-only animation utilities. This PR sets the visual foundation for all subsequent work.",
+  "status": "in_progress",
+  "steps": [
+    "In src/styles/global.css @theme block, add new depth tokens: --color-backdrop (warm paper-grain tinted canvas for light), --shadow-surface (subtle inner glow for card elevation), --shadow-depth (deeper layered shadow for major containers). Add --color-overlay for glassmorphism/elevated surfaces.",
+    "In src/styles/global.css [data-theme='dark'] block, replace flat near-black with a GREEN-CHARCOAL palette: canvas oklch(10% 0.03 165) (very dark green-charcoal), surface oklch(14% 0.025 165), paper oklch(16% 0.02 165). Update shadows for dark to use subtle green-tinted glows rather than flat borders. This creates the layered/elevated feel in dark mode.",
+    "Remove the @keyframes dropzone-glow animation entirely from global.css. Remove the .animate-dropzone-glow utility class. Keep shimmer (it is used once on success, which is functional) and wifi-pulse (functional status indicator).",
+    "Add new functional animation keyframes: @keyframes settle (a one-time scale(1.02)->scale(1) with opacity for success feedback), @keyframes slide-up (translateY(8px)->0 for card entrance), @keyframes progress-fill (width 0->100% for progress bars). Add corresponding utility classes with reduced-motion guards.",
+    "Add a subtle CSS texture/grain background utility class .bg-grain that applies a barely-visible noise pattern using a CSS gradient trick (repeating-conic-gradient or similar) for the page backdrop. Light mode = warm paper grain. Dark mode = very subtle matte texture on the green-charcoal.",
+    "Add utility classes for the new elevation system: .surface-elevated (slightly lifted card with shadow-surface), .surface-raised (more prominent elevation with shadow-depth). These will be used by Converter and result cards."
+  ],
+  "acceptance_criteria": [
+    "global.css no longer contains @keyframes dropzone-glow or .animate-dropzone-glow",
+    "Dark mode tokens use green-charcoal hues (oklch hue ~165) not neutral gray (hue ~70)",
+    "New shadow tokens (shadow-surface, shadow-depth) are defined in both light and dark modes",
+    "New functional animations (settle, slide-up, progress-fill) exist with reduced-motion guards",
+    "All existing token names (canvas, paper, ink, stone, mist, surface, accent, accent-soft, brass, brass-soft, success, danger) are preserved - only values updated for dark mode",
+    "No changes to any file outside src/styles/global.css"
+  ],
+  "verification": [
+    "Read src/styles/global.css and confirm: no dropzone-glow keyframe, dark mode hues shifted to green (~165), new animation utilities present with @media (prefers-reduced-motion: reduce) guards, all original token names intact"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

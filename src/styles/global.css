@@ -28,6 +28,10 @@
   --color-success: oklch(37% 0.08 165);
   --color-danger: oklch(40% 0.15 25);
 
+  /* Depth & layering */
+  --color-backdrop: oklch(94% 0.015 80); /* warm paper-grain tinted canvas */
+  --color-overlay: oklch(100% 0 0 / 0.7); /* glassmorphism / elevated surfaces */
+
   /* Typography */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -40,24 +44,42 @@
     0 12px 40px -12px oklch(15% 0.02 70 / 0.10);
   --shadow-lifted: 0 4px 16px -4px oklch(15% 0.02 70 / 0.08),
     0 20px 50px -16px oklch(15% 0.02 70 / 0.12);
+
+  /* Depth shadows — elevation system */
+  --shadow-surface: 0 1px 3px oklch(15% 0.02 70 / 0.06),
+    inset 0 1px 0 oklch(100% 0 0 / 0.5); /* subtle inner glow for card elevation */
+  --shadow-depth: 0 4px 12px -2px oklch(15% 0.02 70 / 0.10),
+    0 16px 48px -8px oklch(15% 0.02 70 / 0.14); /* deeper layered shadow for major containers */
 }
 
-/* Vault — dark mode overrides */
+/* Vault — dark mode overrides (Green-Charcoal) */
 [data-theme="dark"] {
-  --color-canvas: oklch(12% 0.02 70);
-  --color-surface: oklch(15% 0.02 70);
-  --color-paper: oklch(15% 0.02 70);
+  --color-canvas: oklch(10% 0.03 165); /* very dark green-charcoal */
+  --color-surface: oklch(14% 0.025 165); /* elevated surface */
+  --color-paper: oklch(16% 0.02 165); /* card backgrounds */
   --color-ink: oklch(95% 0.01 80);
-  --color-stone: oklch(65% 0.02 70);
-  --color-mist: oklch(25% 0.02 70);
+  --color-stone: oklch(65% 0.02 165);
+  --color-mist: oklch(22% 0.02 165);
   --color-accent: oklch(78% 0.14 165);
-  --color-accent-soft: oklch(25% 0.06 165);
+  --color-accent-soft: oklch(20% 0.06 165);
   --color-brass: oklch(66% 0.12 70);
-  --color-brass-soft: oklch(25% 0.04 70);
+  --color-brass-soft: oklch(22% 0.04 165);
   --color-success: oklch(78% 0.14 165);
   --color-danger: oklch(60% 0.18 25);
-  --shadow-luxe: 0 0 0 1px oklch(25% 0.02 70);
-  --shadow-lifted: 0 0 0 1px oklch(30% 0.02 70);
+
+  /* Depth & layering — dark */
+  --color-backdrop: oklch(8% 0.025 165); /* deep green-charcoal backdrop */
+  --color-overlay: oklch(16% 0.02 165 / 0.8); /* glassmorphism in dark */
+
+  /* Shadows — green-tinted glows for layered elevation */
+  --shadow-luxe: 0 1px 2px oklch(5% 0.03 165 / 0.4),
+    0 0 0 1px oklch(20% 0.025 165 / 0.6);
+  --shadow-lifted: 0 4px 16px -4px oklch(5% 0.03 165 / 0.5),
+    0 0 0 1px oklch(22% 0.025 165 / 0.5);
+  --shadow-surface: 0 1px 4px oklch(5% 0.03 165 / 0.3),
+    inset 0 1px 0 oklch(20% 0.03 165 / 0.3); /* subtle green-tinted inner glow */
+  --shadow-depth: 0 4px 16px -2px oklch(5% 0.03 165 / 0.5),
+    0 16px 48px -8px oklch(5% 0.02 165 / 0.4); /* deep green-charcoal layered shadow */
 }
 
 html {
@@ -80,11 +102,6 @@ body {
 
 /* ---------- ATELIER Animations ---------- */
 
-@keyframes dropzone-glow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-}
-
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -96,17 +113,68 @@ body {
   100% { opacity: 1; }
 }
 
-/* ATELIER animation utilities (reduced-motion-guarded below) */
-.animate-dropzone-glow { animation: dropzone-glow 4s ease-in-out infinite; }
+@keyframes settle {
+  0% { transform: scale(1.02); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes progress-fill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+/* ATELIER animation utilities */
 .animate-shimmer { animation: shimmer 0.9s ease-out 1; }
 .animate-wifi-pulse { animation: wifi-pulse 3s ease-in-out infinite; }
+.animate-settle { animation: settle 0.3s ease-out 1 forwards; }
+.animate-slide-up { animation: slide-up 0.35s ease-out 1 forwards; }
+.animate-progress-fill { animation: progress-fill 1.5s ease-in-out 1 forwards; }
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .animate-dropzone-glow,
   .animate-shimmer,
-  .animate-wifi-pulse {
+  .animate-wifi-pulse,
+  .animate-settle,
+  .animate-slide-up,
+  .animate-progress-fill {
     animation-duration: 0s !important;
     animation: none !important;
   }
+}
+
+/* ---------- ATELIER Texture ---------- */
+
+.bg-grain {
+  background-image: repeating-conic-gradient(
+    oklch(50% 0.01 80 / 0.03) 0% 25%,
+    transparent 0% 50%
+  );
+  background-size: 4px 4px;
+}
+
+[data-theme="dark"] .bg-grain {
+  background-image: repeating-conic-gradient(
+    oklch(40% 0.02 165 / 0.04) 0% 25%,
+    transparent 0% 50%
+  );
+  background-size: 4px 4px;
+}
+
+/* ---------- ATELIER Elevation Utilities ---------- */
+
+.surface-elevated {
+  background-color: var(--color-paper);
+  box-shadow: var(--shadow-surface);
+  border-radius: var(--radius-md);
+}
+
+.surface-raised {
+  background-color: var(--color-paper);
+  box-shadow: var(--shadow-depth);
+  border-radius: var(--radius-xl);
 }

@@ -1,0 +1,34 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Hub pages + converter pages composition upgrade: apply depth/texture backdrop, tighten vertical spacing, strengthen type hierarchy, apply the new design system tokens to all pages. Update [from]-to-[to].astro converter page to use the overhauled Converter component naturally. Ensure dark mode is premium across all pages.",
+  "status": "pending",
+  "steps": [
+    "Update src/layouts/Layout.astro: add the bg-grain texture class to the <body> element (or a wrapper div inside main) so all pages have the subtle texture backdrop. Ensure the body uses bg-canvas (already does) with the grain overlay. This gives depth to the entire site.",
+    "Update src/pages/[from]-to-[to].astro (the converter pages): tighten the hero section vertical spacing (reduce pt-16 to pt-12, pb-8 to pb-4). The converter section is already max-w-2xl which is good. Ensure the Converter component section has no excessive padding since the Converter itself now shows file cards that need room. Add a subtle surface-elevated class to the section wrapping the Converter to give it a card-like elevated feel against the textured background.",
+    "Update all hub pages (src/pages/pdf.astro, src/pages/image-converter.astro, src/pages/audio-converter.astro, src/pages/text.astro): (a) tighten hero spacing to match converter pages (pt-12 pb-4), (b) reduce section gaps (py-8 to py-6 where appropriate), (c) wrap the FormatPicker section in a surface-elevated container for visual depth, (d) strengthen the h1 type scale (keep text-4xl sm:text-5xl but add leading-tight for tighter line height).",
+    "Update src/pages/index.astro homepage: (a) tighten hero vertical spacing slightly (pt-20 pb-12 to pt-16 pb-8 on mobile, keep generous on desktop via sm: variants), (b) add leading-[1.05] to h1 (already has it, confirm), (c) ensure the category cards section uses the surface-elevated styling so cards pop against the textured background, (d) the 'How it works' section icons should use the new elevation: each icon circle gets a subtle shadow.",
+    "Verify dark mode appearance across all updated pages: the green-charcoal background should show through, cards should feel elevated with the dark-mode shadow tokens, text contrast meets WCAG AA (ink on canvas in dark = oklch(95%) on oklch(10%) = very high contrast), accent color in dark (oklch(78% 0.14 165) mint-green) should pop against the dark green-charcoal."
+  ],
+  "acceptance_criteria": [
+    "Layout.astro body or main wrapper has the bg-grain class for texture",
+    "Hub pages have tightened vertical spacing (reduced from pt-16 to pt-12, excess py-8 trimmed)",
+    "FormatPicker sections on hub pages are wrapped with elevated surface styling",
+    "Converter page hero has reduced padding (pt-12 pb-4)",
+    "Homepage category cards use elevated surface styling",
+    "All pages maintain responsive behavior (320px to 1440px+)",
+    "Dark mode shows green-charcoal backdrop with elevated cards feeling layered",
+    "No modifications to engine files or conversion logic",
+    "Privacy motto/proof remains visible on all relevant pages",
+    "The 'Your files are nobody's business' line remains on homepage"
+  ],
+  "verification": [
+    "Read Layout.astro and confirm bg-grain class on body or wrapper",
+    "Read [from]-to-[to].astro and confirm tightened spacing classes",
+    "Read each hub page (pdf.astro, image-converter.astro, audio-converter.astro, text.astro) and confirm spacing updates and elevated surface wrappers around FormatPicker",
+    "Read index.astro and confirm category cards have elevation styling",
+    "Confirm no changes to src/lib/ or src/data/ files"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
