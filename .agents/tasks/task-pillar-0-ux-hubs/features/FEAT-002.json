@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Build the four upgraded UX hub pages (/pdf, /image-converter, /audio-converter, /text) each with a 'from -> to' format picker component plus a grid of category-specific tools. Create a reusable FormatPicker React island component and a ToolGrid Astro component. Update navigation (Header, Footer) to link to the new hubs. Rename /document-converter to /pdf as the canonical PDF hub. The /text hub is a placeholder for future OCR tools (image-to-text, pdf-to-text).",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Step 1: Create a React island component `src/components/FormatPicker.tsx` that renders two dropdowns ('From' and 'To' format) and a 'Convert' button. When the user selects a from+to pair, clicking Convert navigates to the corresponding /{from}-to-{to} page. The component accepts props: `formats` (array of {id, name}), `category` (string for filtering). Style with Tailwind using the Quiet Luxury tokens (border-mist, bg-paper, rounded-[var(--radius-xl)], font-display for labels, accent for the button). Include a privacy line below: 'Nothing is uploaded. Conversion happens on your device.'",
     "Step 2: Create an Astro component `src/components/ToolGrid.astro` that accepts a `tools` prop (array of {name, description, href, icon?}) and renders them in a responsive grid of cards. Each card links to the tool's page. Use the same card style as ConversionGrid (border-mist, bg-paper, hover:border-accent/60, hover:shadow-luxe). Tools that don't have pages yet should show 'Coming soon' badge and not be clickable links.",
@@ -38,5 +38,5 @@
     "NOTE: npm run build cannot run due to network restrictions (npm registry blocked). Build verification deferred to CI/Cloudflare preview."
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All hub pages and components created successfully. Build verification deferred to CI due to npm registry being blocked (FEAT-001 finding). FormatPicker uses react useState for selection state and window.location.href for navigation. ToolGrid uses conditional rendering for comingSoon items (div vs anchor). Header no longer imports CATEGORIES since links are hardcoded to the new hub paths. Footer removes CATEGORIES import and uses direct href strings. document-converter.astro is now a standalone redirect page (not using Layout) to avoid issues with named slots that Layout does not support."
 }
