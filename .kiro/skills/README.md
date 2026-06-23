@@ -11,7 +11,8 @@ a session; the agent also reads them directly. Each is a folder with a `SKILL.md
   category-hub UX, and the SACRED MOTTO (no upload/server/signup, $0).
 - **client-side-conversion-playbook/** — custom: how to add in-browser engines
   (WASM <25 MiB split, ESM ffmpeg core, lazy-load, memory guards, no silent
-  failures) + a feasibility matrix for new features (OCR ✅, translation ⚠️).
+  failures) + a feasibility matrix for new features (PDF tools ✅, image
+  compress/resize ✅, OCR ✅, translation removed).
 
 ## Use
 - Auto: Kiro matches your request to a skill's description.

@@ -29,7 +29,9 @@ Battle-tested rules for adding in-browser conversion features without breaking t
 - ✅ **PDF tools — merge / split / rotate / reorder / delete pages / images→PDF:** `pdf-lib` (pure JS, no server). PDF→images: `pdf.js`. **Compress:** re-render/re-encode images via pdf.js + pdf-lib (lossy) — feasible, set expectations.
 - ✅ **Audio** (mp3/wav/ogg/m4a/flac/aac): ffmpeg.wasm (ESM core, split). Done.
 - ✅ **Image → Text (OCR):** **Tesseract.js** (WASM, 100+ languages, no server). Lazy-load; download language data on demand; honest accuracy caveat on skewed/low-res scans.
-- ⚠️ **Language translation:** NO good fully-in-browser option that respects the motto. Server/API = breaks motto. In-browser = Chrome-only Translator API (limited) or large Transformers.js models (quality/size/coverage tradeoffs). DEFER or ship as a clearly-labeled experimental, still-no-upload beta. Do not let it dilute the brand.
+- ✅ **Image tools — compress / resize / crop / rotate / flip:** Canvas API (instant, no new heavy deps). Compress = `canvas.toBlob` with a quality value; iterate quality to hit a target file size (e.g. "under 100 KB"). Do NOT add merge/split for images — irrelevant to the medium.
+- ✅ **Audio tools — trim/cut / merge/join / change bitrate:** ffmpeg.wasm (the audio engine is already loaded; reuse it).
+- 🚫 **Language translation:** REMOVED / out of scope. No fully-in-browser option respects the motto (server/API breaks it). Do not add.
 - 🚫 **Video transcode:** memory-crashes mobile browsers. Excluded by design.
 
 ## Adding a new tool (checklist)
