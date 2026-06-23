@@ -1,35 +1,63 @@
 @import "tailwindcss";
 
 /*
-  ZeroUpload — "Quiet Luxury" design system.
-  Restrained neutral palette, generous whitespace, premium type.
+  ZeroUpload — ATELIER "Porcelain" design system.
+  Restrained warmth, generous whitespace, premium type.
+  oklch palette for perceptual uniformity.
   Defined as Tailwind v4 theme tokens so they are usable as utilities
-  (e.g. bg-ink, text-stone, font-display).
+  (e.g. bg-canvas, text-ink, font-display, bg-brass).
 */
 @theme {
-  /* Core neutrals */
-  --color-canvas: #f7f6f3; /* off-white page background */
-  --color-paper: #ffffff; /* cards / surfaces */
-  --color-ink: #14130f; /* near-black text */
-  --color-stone: #6b6860; /* muted secondary text */
-  --color-mist: #e7e4dd; /* hairline borders */
+  /* Core neutrals — Porcelain palette */
+  --color-canvas: oklch(96% 0.01 80); /* warm off-white page background */
+  --color-paper: oklch(100% 0 0); /* pure white cards / surfaces */
+  --color-ink: oklch(15% 0.02 70); /* near-black text */
+  --color-stone: oklch(50% 0.02 70); /* muted secondary text */
+  --color-mist: oklch(91% 0.02 80); /* hairline borders */
+  --color-surface: oklch(100% 0 0); /* elevated surface (same as paper in light) */
 
-  /* Single restrained accent */
-  --color-accent: #2f6f4f; /* deep refined green */
-  --color-accent-soft: #e8f0ea;
+  /* Pine accent */
+  --color-accent: oklch(37% 0.08 165); /* deep pine green */
+  --color-accent-soft: oklch(94% 0.02 155); /* pale pine tint */
+
+  /* Brass accent */
+  --color-brass: oklch(66% 0.12 70); /* warm gold for highlights */
+  --color-brass-soft: oklch(92% 0.03 80); /* subtle brass tint for hovers */
 
   /* Status */
-  --color-success: #2f6f4f;
-  --color-danger: #9b2c2c;
+  --color-success: oklch(37% 0.08 165);
+  --color-danger: oklch(40% 0.15 25);
 
   /* Typography */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
 
   /* Radius / shadow — soft, premium */
+  --radius-md: 0.75rem;
   --radius-xl: 1.25rem;
-  --shadow-luxe: 0 1px 2px rgba(20, 19, 15, 0.04),
-    0 12px 40px -12px rgba(20, 19, 15, 0.12);
+  --shadow-luxe: 0 1px 2px oklch(15% 0.02 70 / 0.04),
+    0 12px 40px -12px oklch(15% 0.02 70 / 0.10);
+  --shadow-lifted: 0 4px 16px -4px oklch(15% 0.02 70 / 0.08),
+    0 20px 50px -16px oklch(15% 0.02 70 / 0.12);
+}
+
+/* Vault — dark mode overrides */
+[data-theme="dark"] {
+  --color-canvas: oklch(12% 0.02 70);
+  --color-surface: oklch(15% 0.02 70);
+  --color-paper: oklch(15% 0.02 70);
+  --color-ink: oklch(95% 0.01 80);
+  --color-stone: oklch(65% 0.02 70);
+  --color-mist: oklch(25% 0.02 70);
+  --color-accent: oklch(78% 0.14 165);
+  --color-accent-soft: oklch(25% 0.06 165);
+  --color-brass: oklch(66% 0.12 70);
+  --color-brass-soft: oklch(25% 0.04 70);
+  --color-success: oklch(78% 0.14 165);
+  --color-danger: oklch(60% 0.18 25);
+  --shadow-luxe: 0 0 0 1px oklch(25% 0.02 70);
+  --shadow-lifted: 0 0 0 1px oklch(30% 0.02 70);
 }
 
 html {
@@ -48,4 +76,32 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* ---------- ATELIER Animations ---------- */
+
+@keyframes dropzone-glow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes wifi-pulse {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-dropzone-glow,
+  .animate-shimmer,
+  .animate-wifi-pulse {
+    animation-duration: 0s !important;
+    animation: none !important;
+  }
 }

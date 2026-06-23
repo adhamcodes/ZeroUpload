@@ -39,13 +39,19 @@ alternative. We never break a requirement, because each one protects the motto:
 ## Aesthetic: "Quiet Luxury"
 Generous whitespace, refined typography, one restrained accent, soft depth, buttery micro-interactions. Nothing shouts. The drop zone is the hero.
 
-## Design tokens (current system — keep/extend, don't replace)
-Defined in `src/styles/global.css` (`@theme`). Current direction:
-- `--canvas` off-white `#f7f6f3` · `--paper` `#ffffff` · `--ink` `#14130f`
-- `--stone` muted `#6b6860` · `--mist` border `#e7e4dd`
-- `--accent` deep refined green `#2f6f4f` · `--accent-soft` `#e8f0ea`
-- Fonts: display serif **Fraunces**, body **Inter**. Radius soft (~1.25rem). Shadow: subtle layered.
-- One accent only. Warm neutrals. WCAG AA contrast.
+## Design tokens — "ATELIER" (current system; keep/extend, don't replace)
+Defined in `src/styles/global.css` (`@theme`), in oklch. Light "Porcelain" + dark "Vault".
+- Canvas `oklch(96% 0.01 80)` · Paper/Surface `#fff` · Ink `oklch(15% 0.02 70)`
+- Stone `oklch(50% 0.02 70)` · Mist `oklch(91% 0.02 80)`
+- **Pine** accent `oklch(37% 0.08 165)` (CTAs/structure) · accent-soft `oklch(94% 0.02 155)`
+- **Brass** `oklch(66% 0.12 70)` — RARE warm-gold highlights/hovers/numbers ONLY (never small body text; fails contrast). Text = Ink/Pine.
+- **Dark mode "Vault"** via `[data-theme="dark"]` (toggle in Header, persisted): canvas `oklch(12% 0.02 70)`, accent glows mint `oklch(78% 0.14 165)`.
+- Fonts: display **Fraunces**, body **Geist**, **Geist Mono** for technical bits (`PNG → JPG`, sizes, `done in N ms`). Radius soft. Shadow: subtle layered.
+- One accent (Pine) + brass spark. Warm neutrals. WCAG AA contrast.
+
+## Signature elements
+- Drop-zone "on-device glow" (soft pulse) + success shimmer + mono timing.
+- Living "offline-proof" pill (wifi → wifi-off animation). Respect `prefers-reduced-motion`.
 
 ## The UX flow (V2 — the upgrade)
 The whole point: **drop → pick → done, without hunting.**
