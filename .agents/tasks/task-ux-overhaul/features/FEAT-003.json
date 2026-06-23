@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "Complete Converter.tsx overhaul: file-first flow with real previews (image thumbnails, PDF first-page, file glyph), batch cascade with staggered per-file progress, and result reward cards showing before/after size with % savings, result thumbnail, success settle animation, and bold download button.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Add a FileCard sub-component (can be in same file or a new src/components/FileCard.tsx) that displays a queued/processing file as a card: shows a REAL image thumbnail (via URL.createObjectURL for images), a PDF first-page render (using pdfjs-dist getPage/render to a small canvas - pdfjs-dist is already a dependency), or a tasteful file glyph SVG for other types. Card shows filename (truncated), file size in prettyBytes, and auto-detected source format from the MIME type or extension. Card styling: rounded-[var(--radius-xl)] border border-mist bg-paper p-4, with the thumbnail/glyph on the left and text on the right.",
     "Refactor the Converter.tsx drop zone to implement file-first flow: when files are dropped/selected, IMMEDIATELY show them as FileCards in a grid/stack below the drop zone (before conversion starts). Auto-detect the source format from file.type or extension. Each FileCard shows its preview + a status indicator (queued/converting/done/error). The drop zone itself remains clickable for adding more files. Remove the ambient glow div entirely (the one with className containing animate-dropzone-glow).",
