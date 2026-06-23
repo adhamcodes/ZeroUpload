@@ -21,7 +21,7 @@ const { tools } = Astro.props;
           <span class="absolute top-3 right-3 rounded-full bg-mist px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-stone">
             Coming soon
           </span>
-          <p class="font-display text-lg text-ink">{tool.name}</p>
+          <h3 class="font-display text-lg text-ink">{tool.name}</h3>
           <p class="mt-1 text-xs text-stone">{tool.description}</p>
         </div>
       ) : (
@@ -29,9 +29,9 @@ const { tools } = Astro.props;
           href={tool.href}
           class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
         >
-          <p class="font-display text-lg text-ink transition-colors group-hover:text-accent">
+          <h3 class="font-display text-lg text-ink transition-colors group-hover:text-accent">
             {tool.name}
-          </p>
+          </h3>
           <p class="mt-1 text-xs text-stone">{tool.description}</p>
         </a>
       )
