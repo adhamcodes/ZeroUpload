@@ -18,7 +18,7 @@ const { tools } = Astro.props;
     tools.map((tool) => (
       <a
         href={tool.href}
-        class="group relative rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[var(--shadow-lifted)] border-b-2 border-b-transparent hover:border-b-brass"
+        class="group relative rounded-[var(--radius-xl)] border border-mist bg-paper p-5 transition-all duration-200 motion-safe:hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[var(--shadow-lifted)] border-b-2 border-b-transparent hover:border-b-brass"
       >
         <div class="flex items-start gap-2">
           {tool.icon && (

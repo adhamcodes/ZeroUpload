@@ -87,6 +87,7 @@ import { CATEGORIES } from "../data/conversions";
         id="mobile-menu-btn"
         type="button"
         aria-label="Open navigation menu"
+        aria-expanded="false"
         class="flex h-8 w-8 items-center justify-center rounded-full border border-mist bg-paper text-stone transition-colors hover:border-accent/60 hover:text-ink"
       >
         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -97,7 +98,7 @@ import { CATEGORIES } from "../data/conversions";
   </div>
 
   <!-- Mobile nav menu (hidden by default) -->
-  <nav id="mobile-menu" class="hidden border-t border-mist/70 bg-paper px-6 py-4 sm:hidden">
+  <nav id="mobile-menu" class="hidden border-t border-mist/70 bg-paper px-6 py-4 sm:hidden" aria-hidden="true">
     <div class="flex flex-col gap-4 text-sm text-stone">
       <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.image.slug}`}>Image</a>
       <a class="transition-colors hover:text-ink" href={`/${CATEGORIES.document.slug}`}>PDF</a>
@@ -160,8 +161,29 @@ import { CATEGORIES } from "../data/conversions";
     const menuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     if (menuBtn && mobileMenu) {
+      function openMenu() {
+        mobileMenu!.classList.remove('hidden');
+        menuBtn!.setAttribute('aria-expanded', 'true');
+        mobileMenu!.setAttribute('aria-hidden', 'false');
+      }
+      function closeMenu() {
+        mobileMenu!.classList.add('hidden');
+        menuBtn!.setAttribute('aria-expanded', 'false');
+        mobileMenu!.setAttribute('aria-hidden', 'true');
+      }
       menuBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
+        const isOpen = menuBtn.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && menuBtn.getAttribute('aria-expanded') === 'true') {
+          closeMenu();
+          menuBtn.focus();
+        }
       });
     }
   })();
