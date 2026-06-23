@@ -35,20 +35,29 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
 
-    <!-- Premium typography -->
+    <!-- Prevent flash of wrong theme: apply stored theme before first paint -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (t) document.documentElement.setAttribute("data-theme", t);
+          else if (matchMedia("(prefers-color-scheme:dark)").matches)
+            document.documentElement.setAttribute("data-theme", "dark");
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- Premium typography: Fraunces (display) + Geist (body) + Geist Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
     {
       jsonLd.map((obj) => (
-        <script
-          type="application/ld+json"
-          set:html={JSON.stringify(obj)}
-        />
+        <script type="application/ld+json" set:html={JSON.stringify(obj)} />
       ))
     }
   </head>
