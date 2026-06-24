@@ -271,7 +271,7 @@ export default function BackgroundRemover() {
 
       {!modelReady && (
         <p className="mt-2 text-center text-xs text-faint">
-          First use downloads a one-time AI model (~210&nbsp;MB), then it's cached
+          First use downloads a one-time AI model (~25&nbsp;MB), then it's cached
           and works offline.
         </p>
       )}

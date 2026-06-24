@@ -2,17 +2,17 @@
  * bgRemove.ts — 100% in-browser AI background removal.
  *
  * Library: @huggingface/transformers (Apache-2.0)
- * Model:   onnx-community/BiRefNet_lite-ONNX (MIT, general-purpose matting)
+ * Model:   Xenova/modnet (Apache-2.0) — fast, lightweight portrait matting
+ *          (~24 MB). Chosen for reliability: heavier general models (BiRefNet,
+ *          ~200 MB) exhaust browser memory in WASM and break on Firefox WebGPU.
  *
  * THE PROMISE IS INTACT: the user's image NEVER leaves the device. Only the
  * model weights are fetched once from the Hugging Face CDN, then cached by the
- * browser. Inference runs entirely on-device.
+ * browser. Inference runs entirely on-device on the WASM backend, which works
+ * on every modern browser.
  *
- * Reliability model: we try WebGPU first (fast). If WebGPU fails to LOAD *or*
- * to RUN (some drivers crash compiling certain shaders), we automatically fall
- * back to the WASM backend, which works on virtually every browser. Both
- * backends use the same fp32 weights file, so the fallback never triggers a
- * second download.
+ * We use the high-level `background-removal` pipeline, which handles the model's
+ * input/output details internally and returns an RGBA cut-out image.
  *
  * This is a self-contained engine — it does not touch convert.ts or any of the
  * existing conversion engines.
@@ -32,26 +32,11 @@ export interface BgResult {
   height: number;
 }
 
-/** General-purpose matting model (people, products, logos, objects). MIT. */
-const MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
+/** Lightweight, web-proven portrait matting model. Apache-2.0. */
+const MODEL_ID = "Xenova/modnet";
 
-type Backend = "webgpu" | "wasm";
-type Session = { model: any; processor: any; RawImage: any; backend: Backend };
-
-// The active, known-working session is reused for every image in the tab.
-let activeSession: Session | null = null;
-let tfModule: any = null;
-
-function hasWebGPU(): boolean {
-  return typeof navigator !== "undefined" && "gpu" in navigator;
-}
-
-/** Cap the working resolution to keep memory sane (esp. on phones). */
-function maxEdge(): number {
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua);
-  return isMobile ? 2048 : 4096;
-}
+// The pipeline is loaded once and reused for every image in the tab.
+let segmenterPromise: Promise<any> | null = null;
 
 /** Turn any thrown value (Error, string, DOMException, object) into text. */
 function describe(err: any): string {
@@ -66,199 +51,132 @@ function describe(err: any): string {
   }
 }
 
-async function getTf(): Promise<any> {
-  if (tfModule) return tfModule;
-  // Dynamic import: transformers.js is only ever pulled into the browser,
-  // never at build/SSR time, and only when the user actually removes a bg.
-  tfModule = await import("@huggingface/transformers");
-  const { env } = tfModule;
-  // We only use the remote HF model; never probe for local files.
-  env.allowLocalModels = false;
-  // Single-threaded WASM avoids requiring cross-origin isolation headers on a
-  // static host like Cloudflare Pages. (Ignored on the WebGPU path.)
-  try {
-    if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.numThreads = 1;
-  } catch {
-    /* non-fatal */
-  }
-  return tfModule;
-}
+async function getSegmenter(onProgress?: (p: BgProgress) => void): Promise<any> {
+  if (segmenterPromise) return segmenterPromise;
 
-async function buildSession(
-  backend: Backend,
-  onProgress?: (p: BgProgress) => void,
-): Promise<Session> {
-  const tf = await getTf();
-  const { AutoModel, AutoProcessor, RawImage } = tf;
+  segmenterPromise = (async () => {
+    // Dynamic import: transformers.js is only ever pulled into the browser,
+    // never at build/SSR time, and only when the user actually removes a bg.
+    const tf: any = await import("@huggingface/transformers");
+    const { pipeline, env } = tf;
 
-  const progress_callback = (data: any) => {
-    if (!onProgress) return;
-    if (data?.status === "progress" && typeof data.progress === "number") {
-      onProgress({
-        stage: "download",
-        label: `Downloading the AI model (one time only)… ${Math.round(data.progress)}%`,
-        pct: data.progress,
-      });
-    } else if (data?.status === "ready" || data?.status === "done") {
-      onProgress({ stage: "warm", label: "Warming up the model…" });
+    // We only use the remote HF model; never probe for local files.
+    env.allowLocalModels = false;
+    // Single-threaded WASM avoids requiring cross-origin isolation headers on
+    // a static host like Cloudflare Pages.
+    try {
+      if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.numThreads = 1;
+    } catch {
+      /* non-fatal */
     }
-  };
 
-  // fp32 weights work on both backends and are reused from cache on fallback.
-  const model = await AutoModel.from_pretrained(MODEL_ID, {
-    device: backend,
-    dtype: "fp32",
-    progress_callback,
-  });
-  const processor = await AutoProcessor.from_pretrained(MODEL_ID, {
-    progress_callback,
-  });
-  return { model, processor, RawImage, backend };
+    const progress_callback = (data: any) => {
+      if (!onProgress) return;
+      if (data?.status === "progress" && typeof data.progress === "number") {
+        onProgress({
+          stage: "download",
+          label: `Downloading the AI model (one time only)… ${Math.round(data.progress)}%`,
+          pct: data.progress,
+        });
+      } else if (data?.status === "ready" || data?.status === "done") {
+        onProgress({ stage: "warm", label: "Warming up the model…" });
+      }
+    };
+
+    // WASM backend: small model, runs reliably on every browser (incl. Firefox).
+    return await pipeline("background-removal", MODEL_ID, {
+      device: "wasm",
+      dtype: "fp32",
+      progress_callback,
+    });
+  })();
+
+  try {
+    return await segmenterPromise;
+  } catch (e) {
+    // Allow a later retry instead of caching a rejected promise forever.
+    segmenterPromise = null;
+    throw new Error(`Couldn't load the AI model — ${describe(e)}`);
+  }
 }
 
-/** Run the model on a file and return a grayscale alpha mask (RawImage). */
-async function infer(
-  session: Session,
-  file: File,
-  w: number,
-  h: number,
-): Promise<any> {
-  const { model, processor, RawImage } = session;
-  const url = URL.createObjectURL(file);
-  try {
-    const image = await RawImage.fromURL(url);
-    const { pixel_values } = await processor(image);
-    const out = await model({ input_image: pixel_values });
-    const outTensor = out.output_image ?? out.output ?? Object.values(out)[0];
-    return await RawImage.fromTensor(
-      outTensor[0].sigmoid().mul(255).to("uint8"),
-    ).resize(w, h);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+/** Encode an RGBA RawImage to a transparent PNG blob via a canvas. */
+async function rawImageToPngBlob(img: any): Promise<Blob> {
+  // Ensure 4 channels (RGBA) so transparency is preserved.
+  const rgba = typeof img.rgba === "function" ? img.rgba() : img;
+  const width: number = rgba.width;
+  const height: number = rgba.height;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas isn't available in this browser.");
+
+  const imageData = new ImageData(
+    new Uint8ClampedArray(rgba.data),
+    width,
+    height,
+  );
+  ctx.putImageData(imageData, 0, 0);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Could not encode the PNG."))),
+      "image/png",
+    );
+  });
+
+  canvas.width = 0;
+  canvas.height = 0;
+  return blob;
 }
 
 /**
  * Remove the background from an image and return a transparent PNG.
- * Everything runs on-device. Throws a friendly Error on unsupported input.
+ * Everything runs on-device. Throws a friendly Error on failure.
  */
 export async function removeBackground(
   file: File,
   onProgress?: (p: BgProgress) => void,
 ): Promise<BgResult> {
-  // Decode the original (capped) for full-resolution compositing.
-  let bitmap: ImageBitmap;
+  const segmenter = await getSegmenter(onProgress);
+
+  onProgress?.({ stage: "infer", label: "Removing the background…" });
+
+  const url = URL.createObjectURL(file);
+  let outImg: any;
   try {
-    bitmap = await createImageBitmap(file);
-  } catch {
-    throw new Error(
-      "This image type can't be read in the browser. Try a JPG, PNG or WEBP.",
-    );
-  }
-
-  try {
-    const longEdge = Math.max(bitmap.width, bitmap.height);
-    const scale = longEdge > maxEdge() ? maxEdge() / longEdge : 1;
-    const w = Math.max(1, Math.round(bitmap.width * scale));
-    const h = Math.max(1, Math.round(bitmap.height * scale));
-
-    // Ensure we have a session (prefer WebGPU on first run).
-    if (!activeSession) {
-      const preferred: Backend = hasWebGPU() ? "webgpu" : "wasm";
-      try {
-        activeSession = await buildSession(preferred, onProgress);
-      } catch (err) {
-        console.error("[ZeroUpload] model load failed:", err);
-        throw new Error(`Couldn't load the AI model — ${describe(err)}`);
-      }
-    }
-
-    onProgress?.({ stage: "infer", label: "Finding the subject…" });
-
-    let mask: any;
-    try {
-      mask = await infer(activeSession, file, w, h);
-    } catch (err) {
-      // WebGPU can fail while *running* (shader compile crashes on some GPUs),
-      // not just while loading. Fall back to WASM and retry once.
-      if (activeSession.backend === "webgpu") {
-        console.warn(
-          "[ZeroUpload] WebGPU run failed — switching to WASM compatibility mode:",
-          err,
-        );
-        onProgress?.({
-          stage: "warm",
-          label: "Switching to compatibility mode (this can be slower)…",
-        });
-        try {
-          activeSession = await buildSession("wasm", onProgress);
-        } catch (loadErr) {
-          console.error("[ZeroUpload] WASM model load failed:", loadErr);
-          activeSession = null;
-          throw new Error(
-            `Compatibility mode couldn't load — ${describe(loadErr)}`,
-          );
-        }
-        onProgress?.({ stage: "infer", label: "Finding the subject…" });
-        try {
-          mask = await infer(activeSession, file, w, h);
-        } catch (wasmErr) {
-          console.error("[ZeroUpload] WASM inference failed:", wasmErr);
-          activeSession = null;
-          throw new Error(`Compatibility mode (WASM) failed — ${describe(wasmErr)}`);
-        }
-      } else {
-        console.error("[ZeroUpload] WASM inference failed:", err);
-        activeSession = null;
-        throw new Error(`Compatibility mode (WASM) failed — ${describe(err)}`);
-      }
-    }
-
-    onProgress?.({ stage: "compose", label: "Cutting out the background…" });
-
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas isn't available in this browser.");
-    ctx.drawImage(bitmap, 0, 0, w, h);
-
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-    const m: ArrayLike<number> = mask.data;
-    const step = mask.channels || 1;
-    const px = w * h;
-    for (let p = 0; p < px; p++) {
-      data[p * 4 + 3] = m[p * step];
-    }
-    ctx.putImageData(imageData, 0, 0);
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error("Could not encode the PNG."))),
-        "image/png",
-      );
-    });
-
-    canvas.width = 0;
-    canvas.height = 0;
-
-    const base = file.name.replace(/\.[^.]+$/, "") || "image";
-    return { blob, filename: `${base}-no-bg.png`, width: w, height: h };
+    const result = await segmenter(url);
+    outImg = Array.isArray(result) ? result[0] : result;
+  } catch (err) {
+    console.error("[ZeroUpload] background removal failed:", err);
+    throw new Error(`Background removal failed — ${describe(err)}`);
   } finally {
-    try {
-      bitmap.close();
-    } catch {
-      /* not all browsers implement close() */
-    }
+    URL.revokeObjectURL(url);
   }
+
+  if (!outImg || !outImg.data) {
+    throw new Error("The model returned no image. Please try another photo.");
+  }
+
+  onProgress?.({ stage: "compose", label: "Saving your transparent PNG…" });
+
+  const blob = await rawImageToPngBlob(outImg);
+  const base = file.name.replace(/\.[^.]+$/, "") || "image";
+  return {
+    blob,
+    filename: `${base}-no-bg.png`,
+    width: outImg.width,
+    height: outImg.height,
+  };
 }
 
 /** Whether this browser can run the on-device model at all. */
 export function backgroundRemovalSupported(): boolean {
   return (
     typeof window !== "undefined" &&
-    typeof createImageBitmap === "function" &&
+    typeof document !== "undefined" &&
     typeof WebAssembly === "object"
   );
 }
