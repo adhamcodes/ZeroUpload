@@ -16,6 +16,7 @@
     "@astrojs/sitemap": "^3.2.1",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
+    "@huggingface/transformers": "^4.2.0",
     "@tailwindcss/vite": "^4.0.0",
     "astro": "^5.2.0",
     "heic-to": "^1.5.2",
