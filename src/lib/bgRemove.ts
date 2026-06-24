@@ -53,6 +53,19 @@ function maxEdge(): number {
   return isMobile ? 2048 : 4096;
 }
 
+/** Turn any thrown value (Error, string, DOMException, object) into text. */
+function describe(err: any): string {
+  if (err == null) return "unknown error";
+  if (err instanceof Error) return `${err.name}: ${err.message}`;
+  if (typeof err === "string") return err;
+  if (typeof err?.message === "string") return err.message;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
+
 async function getTf(): Promise<any> {
   if (tfModule) return tfModule;
   // Dynamic import: transformers.js is only ever pulled into the browser,
@@ -152,7 +165,12 @@ export async function removeBackground(
     // Ensure we have a session (prefer WebGPU on first run).
     if (!activeSession) {
       const preferred: Backend = hasWebGPU() ? "webgpu" : "wasm";
-      activeSession = await buildSession(preferred, onProgress);
+      try {
+        activeSession = await buildSession(preferred, onProgress);
+      } catch (err) {
+        console.error("[ZeroUpload] model load failed:", err);
+        throw new Error(`Couldn't load the AI model — ${describe(err)}`);
+      }
     }
 
     onProgress?.({ stage: "infer", label: "Finding the subject…" });
@@ -172,11 +190,27 @@ export async function removeBackground(
           stage: "warm",
           label: "Switching to compatibility mode (this can be slower)…",
         });
-        activeSession = await buildSession("wasm", onProgress);
+        try {
+          activeSession = await buildSession("wasm", onProgress);
+        } catch (loadErr) {
+          console.error("[ZeroUpload] WASM model load failed:", loadErr);
+          activeSession = null;
+          throw new Error(
+            `Compatibility mode couldn't load — ${describe(loadErr)}`,
+          );
+        }
         onProgress?.({ stage: "infer", label: "Finding the subject…" });
-        mask = await infer(activeSession, file, w, h);
+        try {
+          mask = await infer(activeSession, file, w, h);
+        } catch (wasmErr) {
+          console.error("[ZeroUpload] WASM inference failed:", wasmErr);
+          activeSession = null;
+          throw new Error(`Compatibility mode (WASM) failed — ${describe(wasmErr)}`);
+        }
       } else {
-        throw err;
+        console.error("[ZeroUpload] WASM inference failed:", err);
+        activeSession = null;
+        throw new Error(`Compatibility mode (WASM) failed — ${describe(err)}`);
       }
     }
 
