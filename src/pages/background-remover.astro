@@ -1,0 +1,164 @@
+---
+import Layout from "../layouts/Layout.astro";
+import BackgroundRemover from "../components/BackgroundRemover.tsx";
+import { BG_SUBJECTS } from "../data/bgSubjects";
+
+const title =
+  "Free Background Remover — Remove Image Backgrounds In Your Browser | ZeroUpload";
+const description =
+  "Remove the background from any image and download a transparent PNG — 100% in your browser. Free, unlimited, no signup, no watermark. Your image never leaves your device.";
+
+const steps = [
+  {
+    t: "Drop your image",
+    d: "Drag in a JPG, PNG or WEBP — or click to choose. It stays on your device.",
+  },
+  {
+    t: "AI cuts it out",
+    d: "An on-device AI model finds the subject and erases the background in seconds.",
+  },
+  {
+    t: "Download the PNG",
+    d: "Save a clean transparent PNG, ready to drop onto any background.",
+  },
+];
+
+const faqs = [
+  {
+    q: "Is this background remover really free?",
+    a: "Yes — completely free with no signup, no watermark, and no per-image limit. There is no server doing the work, so there is nothing to meter or charge for.",
+  },
+  {
+    q: "Are my images uploaded anywhere?",
+    a: "No. The background is removed entirely inside your browser using an on-device AI model. Your image never leaves your device. The only thing downloaded is the AI model itself, the first time you use the tool.",
+  },
+  {
+    q: "Why is the first use slower?",
+    a: "The first time you use it, your browser downloads a one-time AI model (around 110 MB). After that it is cached, so every later image is fast — and it even works offline.",
+  },
+  {
+    q: "What image types are supported?",
+    a: "JPG, PNG and WEBP work best. The output is always a transparent PNG so you can place the subject on any background.",
+  },
+  {
+    q: "Does it work on phones?",
+    a: "It can, but a recent desktop browser with WebGPU (Chrome or Edge) is fastest. Very large images on older phones may be slow or run out of memory.",
+  },
+  {
+    q: "What kind of images work?",
+    a: "It is a general-purpose model — people, products, logos, pets, cars and objects all work. Clear contrast between the subject and background gives the cleanest result.",
+  },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "ZeroUpload Background Remover",
+    url: new URL("/background-remover", Astro.site).href,
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Any (web browser)",
+    description,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <!-- Hero -->
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-6 text-center">
+    <span
+      class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      AI runs on your device · nothing is ever uploaded
+    </span>
+
+    <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl">
+      Remove image backgrounds<br /> without uploading a thing.
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Drop an image and get a clean transparent PNG in seconds. Free, unlimited,
+      no signup — and the AI runs entirely inside your browser, so your image
+      never leaves your device.
+    </p>
+  </section>
+
+  <!-- The tool -->
+  <section class="mx-auto max-w-2xl px-6 py-6">
+    <BackgroundRemover client:only="react" />
+  </section>
+
+  <!-- How it works -->
+  <section class="mx-auto max-w-5xl px-6 py-12">
+    <h2 class="font-display text-3xl">How it works</h2>
+    <div class="mt-10 grid gap-8 sm:grid-cols-3">
+      {
+        steps.map((s, i) => (
+          <div>
+            <div class="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft font-display text-accent">
+              {i + 1}
+            </div>
+            <h3 class="mt-4 font-display text-xl">{s.t}</h3>
+            <p class="mt-2 text-stone">{s.d}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Privacy statement -->
+  <section class="mx-auto max-w-3xl px-6 py-12 text-center">
+    <h2 class="font-display text-3xl">Your photos are nobody's business.</h2>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Other background removers upload your private photos to their servers and
+      charge you per image. ZeroUpload does the opposite: the AI model comes to
+      your browser, your photo stays put, and there is no limit because there is
+      no server.
+    </p>
+  </section>
+
+  <!-- Use cases / programmatic SEO links -->
+  <section class="mx-auto max-w-5xl px-6 py-12">
+    <h2 class="font-display text-2xl">Remove the background from anything</h2>
+    <p class="mt-1 text-stone">One tool, tuned for every kind of image.</p>
+    <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        BG_SUBJECTS.map((s) => (
+          <a
+            href={`/remove-background-from-${s.slug}`}
+            class="group rounded-[var(--radius-lg)] border border-mist bg-paper px-5 py-4 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-1)]"
+          >
+            <span class="text-ink transition-colors group-hover:text-accent">
+              Remove background from {s.noun}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-3xl px-6 py-12">
+    <h2 class="font-display text-3xl">Frequently asked questions</h2>
+    <div class="mt-8 divide-y divide-mist/70">
+      {
+        faqs.map((f) => (
+          <div class="py-5">
+            <h3 class="font-display text-lg text-ink">{f.q}</h3>
+            <p class="mt-2 text-stone">{f.a}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</Layout>
