@@ -11,6 +11,7 @@ import {
   backgroundRemovalSupported,
   type BgProgress,
 } from "../lib/bgRemove";
+import CompareSlider from "./CompareSlider";
 
 type ItemStatus = "queued" | "working" | "done" | "error";
 
@@ -338,21 +339,59 @@ interface CardProps {
 
 function BgCard({ item, index, onRemove }: CardProps) {
   const { file, status } = item;
-  const thumb =
-    status === "done" && item.resultUrl ? item.resultUrl : item.previewUrl;
-  const onChecker = status === "done";
 
+  // Done — show the satisfying before/after compare slider.
+  if (status === "done" && item.resultUrl) {
+    return (
+      <div
+        className="animate-card-in rounded-[var(--radius-lg)] border border-mist bg-surface-2 p-3 shadow-[var(--shadow-1)] sm:p-4"
+        style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
+      >
+        <CompareSlider before={item.previewUrl} after={item.resultUrl} />
+        <div className="mt-3 flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-ink">{file.name}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="font-mono text-xs text-stone">
+                {prettyBytes(file.size)}
+                <span className="mx-1 text-faint">&rarr;</span>
+                {prettyBytes(item.resultBytes)} PNG
+              </span>
+              <span className="animate-settle rounded-full bg-accent-soft px-2 py-0.5 font-mono text-xs font-semibold text-accent">
+                background removed
+              </span>
+            </div>
+          </div>
+          <a
+            href={item.resultUrl}
+            download={item.resultName}
+            className="shrink-0 rounded-full bg-ink px-5 py-2 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
+          >
+            Download PNG
+          </a>
+          <button
+            onClick={onRemove}
+            aria-label={`Remove ${file.name}`}
+            className="hover:bg-canvas flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-stone transition-colors hover:text-ink"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Queued / working / error — compact row.
+  const thumb = item.previewUrl;
   return (
     <div
       className="animate-card-in flex items-center gap-4 rounded-[var(--radius-lg)] border border-mist bg-surface-2 p-3 shadow-[var(--shadow-1)] sm:p-4"
       style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
     >
-      <div
-        className={[
-          "relative h-16 w-16 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-mist",
-          onChecker ? "bg-checker" : "bg-canvas",
-        ].join(" ")}
-      >
+      <div className="bg-canvas relative h-16 w-16 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-mist">
         <img src={thumb} alt="" className="h-full w-full object-contain" />
         {status === "working" && (
           <div className="bg-canvas/60 absolute inset-0 flex items-center justify-center">
@@ -363,11 +402,8 @@ function BgCard({ item, index, onRemove }: CardProps) {
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-ink">{file.name}</p>
-
         {status === "queued" && (
-          <p className="mt-1 text-xs text-stone">
-            {prettyBytes(file.size)} · queued
-          </p>
+          <p className="mt-1 text-xs text-stone">{prettyBytes(file.size)} · queued</p>
         )}
         {status === "working" && (
           <div className="mt-1.5">
@@ -378,47 +414,16 @@ function BgCard({ item, index, onRemove }: CardProps) {
           </div>
         )}
         {status === "error" && <p className="mt-1 text-xs text-danger">{item.error}</p>}
-        {status === "done" && (
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="font-mono text-xs text-stone">
-              {prettyBytes(file.size)}
-              <span className="mx-1 text-faint">&rarr;</span>
-              {prettyBytes(item.resultBytes)} PNG
-            </span>
-            <span className="animate-settle rounded-full bg-accent-soft px-2 py-0.5 font-mono text-xs font-semibold text-accent">
-              background removed
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
-        {status === "done" && item.resultUrl && (
-          <a
-            href={item.resultUrl}
-            download={item.resultName}
-            className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
-          >
-            Download PNG
-          </a>
-        )}
         {status !== "working" && (
           <button
             onClick={onRemove}
             aria-label={`Remove ${file.name}`}
             className="hover:bg-canvas flex h-8 w-8 items-center justify-center rounded-full text-stone transition-colors hover:text-ink"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M18 6 6 18" />
               <path d="m6 6 12 12" />
             </svg>
