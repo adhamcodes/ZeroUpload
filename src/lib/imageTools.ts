@@ -229,3 +229,77 @@ export async function resizeImage(
     ms: Math.max(1, Math.round(performance.now() - start)),
   };
 }
+
+
+export interface TransformOptions {
+  /** clockwise rotation in degrees */
+  rotate: 0 | 90 | 180 | 270;
+  /** mirror horizontally */
+  flipH: boolean;
+  /** mirror vertically */
+  flipV: boolean;
+  /** output format; "auto" keeps a sensible type based on the source */
+  format: CompressFormat;
+  /** lossy quality 0..1 (ignored for png) */
+  quality: number;
+}
+
+/**
+ * Rotate and/or flip a single image, entirely client-side.
+ */
+export async function transformImage(
+  file: File,
+  opts: TransformOptions,
+): Promise<ImageToolResult> {
+  const start = performance.now();
+  const { mime, ext } = resolveOutput(file, opts.format);
+
+  const bitmap = await loadBitmap(file);
+  const { width: ow, height: oh } = dimensionsOf(bitmap);
+
+  const rot = ((opts.rotate % 360) + 360) % 360;
+  const swap = rot === 90 || rot === 270;
+  const cw = swap ? oh : ow;
+  const ch = swap ? ow : oh;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Your browser could not create a drawing canvas.");
+
+  if (mime === "image/jpeg") {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, cw, ch);
+  }
+
+  ctx.save();
+  ctx.translate(cw / 2, ch / 2);
+  ctx.rotate((rot * Math.PI) / 180);
+  ctx.scale(opts.flipH ? -1 : 1, opts.flipV ? -1 : 1);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap as CanvasImageSource, -ow / 2, -oh / 2, ow, oh);
+  ctx.restore();
+  if ("close" in bitmap && typeof bitmap.close === "function") bitmap.close();
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Could not encode the image."))),
+      mime,
+      opts.quality,
+    );
+  });
+
+  canvas.width = 0;
+  canvas.height = 0;
+
+  const base = file.name.replace(/\.[^.]+$/, "") || "image";
+  return {
+    blob,
+    filename: `${base}-edited.${ext}`,
+    width: cw,
+    height: ch,
+    ms: Math.max(1, Math.round(performance.now() - start)),
+  };
+}
