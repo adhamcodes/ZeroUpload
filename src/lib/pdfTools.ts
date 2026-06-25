@@ -98,3 +98,62 @@ export async function splitToPages(file: File): Promise<PdfToolResult[]> {
   }
   return results;
 }
+
+
+// ---- PDF text extraction (pdf.js) ----
+let pdfjsMod: typeof import("pdfjs-dist") | null = null;
+async function getPdfjs() {
+  if (!pdfjsMod) {
+    const lib = await import("pdfjs-dist");
+    const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url"))
+      .default;
+    lib.GlobalWorkerOptions.workerSrc = workerUrl;
+    pdfjsMod = lib;
+  }
+  return pdfjsMod;
+}
+
+export interface PdfText {
+  text: string;
+  pages: number;
+  /** true if the PDF appears to have no extractable text (e.g. a scan) */
+  empty: boolean;
+}
+
+/** Extract the text content of a PDF, page by page. */
+export async function extractText(
+  file: File,
+  onProgress?: (ratio: number) => void,
+): Promise<PdfText> {
+  const lib = await getPdfjs();
+  const data = new Uint8Array(await file.arrayBuffer());
+  const task = lib.getDocument({ data });
+  const pdf = await task.promise;
+  const pages = pdf.numPages;
+  const parts: string[] = [];
+
+  try {
+    for (let i = 1; i <= pages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const line = content.items
+        .map((it) => ("str" in it ? (it as { str: string }).str : ""))
+        .join(" ")
+        .replace(/[ \t]+/g, " ")
+        .trim();
+      parts.push(line);
+      page.cleanup();
+      onProgress?.(i / pages);
+    }
+  } finally {
+    await pdf.cleanup().catch(() => {});
+    try {
+      await task.destroy();
+    } catch {
+      /* non-fatal */
+    }
+  }
+
+  const text = parts.join("\n\n").trim();
+  return { text, pages, empty: text.length === 0 };
+}
