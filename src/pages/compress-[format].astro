@@ -1,0 +1,113 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ImageCompressor from "../components/ImageCompressor.tsx";
+import { COMPRESS_SUBJECTS } from "../data/compressFormats";
+
+export function getStaticPaths() {
+  return COMPRESS_SUBJECTS.map((s) => ({
+    params: { format: s.slug },
+    props: { subject: s },
+  }));
+}
+
+const { subject } = Astro.props;
+const others = COMPRESS_SUBJECTS.filter((s) => s.slug !== subject.slug);
+
+const faqs = [
+  { q: `Is compressing ${subject.name} free?`, a: "Yes — free, unlimited, no signup and no watermark. There is no server, so there is nothing to charge for." },
+  { q: "Are my images uploaded?", a: "No. It all runs inside your browser. Your images never leave your device." },
+  { q: "Will quality drop?", a: "You control it with the quality slider and can see the exact file-size saving for every image before you download." },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: subject.h1,
+    url: new URL(`/compress-${subject.slug}`, Astro.site).href,
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Any (web browser)",
+    description: subject.description,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+];
+---
+
+<Layout title={subject.title} description={subject.description} jsonLd={jsonLd}>
+  <!-- Hero -->
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-6 text-center">
+    <span
+      class="inline-flex items-center gap-2 rounded-full border border-mist bg-surface-1 px-4 py-1.5 text-xs font-medium text-stone"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      Runs on your device · nothing is ever uploaded
+    </span>
+    <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl">
+      {subject.h1}
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{subject.intro}</p>
+  </section>
+
+  <!-- Tool (format locked to this page's format) -->
+  <section class="mx-auto max-w-2xl px-6 py-6">
+    <div class="rounded-[1.5rem] border border-mist bg-surface-1 p-5 shadow-[var(--shadow-3)] sm:p-7">
+      <ImageCompressor
+        client:load
+        lockedFormat={subject.format}
+        lockedFormatName={subject.name}
+      />
+    </div>
+    <p class="mt-4 text-center text-sm text-stone">{subject.note}</p>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-3xl px-6 py-10">
+    <h2 class="font-display text-2xl">FAQ</h2>
+    <div class="mt-6 divide-y divide-mist/70">
+      {
+        faqs.map((f) => (
+          <div class="py-5">
+            <h3 class="font-display text-lg text-ink">{f.q}</h3>
+            <p class="mt-2 text-stone">{f.a}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Related -->
+  <section class="mx-auto max-w-5xl px-6 py-10">
+    <h2 class="font-display text-2xl">More compression</h2>
+    <div class="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <a
+        href="/compress-image"
+        class="group rounded-[var(--radius-lg)] border border-mist bg-surface-1 px-5 py-4 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-2)]"
+      >
+        <span class="text-ink transition-colors group-hover:text-accent">
+          Compress any image
+        </span>
+      </a>
+      {
+        others.map((s) => (
+          <a
+            href={`/compress-${s.slug}`}
+            class="group rounded-[var(--radius-lg)] border border-mist bg-surface-1 px-5 py-4 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-2)]"
+          >
+            <span class="text-ink transition-colors group-hover:text-accent">
+              Compress {s.name}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Layout>
