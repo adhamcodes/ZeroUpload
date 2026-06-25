@@ -13,33 +13,33 @@
   (raised cards: result, popover) -> surface-3 (overlays/dropdown menus).
 */
 @theme {
-  /* ---- "Heritage" — warm parchment, deep forest green & brass (one matte theme) ---- */
-  --color-canvas: #f6f1e7; /* warm parchment page base */
-  --color-paper: #fdfbf6; /* alias of surface-1 */
+  /* ---- "Heritage Noir" — deep charcoal, emerald & brass (single dark theme) ---- */
+  --color-canvas: #14161a; /* deep near-black page base */
+  --color-paper: #1b1e23; /* alias of surface-1 */
 
-  --color-surface-1: #fdfbf6; /* base card — warm near-white, lifts off parchment */
-  --color-surface-2: #fefdf9; /* raised card (result, popover) */
-  --color-surface-3: #ffffff; /* overlay / dropdown menu (highest) */
-  --color-surface: #fdfbf6; /* legacy alias */
+  --color-surface-1: #1b1e23; /* base card */
+  --color-surface-2: #22262c; /* raised card (result, popover) */
+  --color-surface-3: #292e35; /* overlay / dropdown menu (highest) */
+  --color-surface: #1b1e23; /* legacy alias */
 
-  --color-ink: #1a1714; /* warm espresso primary text */
-  --color-stone: #6b655b; /* warm taupe secondary text */
-  --color-faint: #938c7f; /* tertiary / hints */
-  --color-mist: #e6dfd2; /* warm beige hairline borders */
-  --color-mist-strong: #d6ccb8; /* stronger border on hover/focus */
+  --color-ink: #f3efe6; /* warm near-white primary text */
+  --color-stone: #a7a195; /* warm muted secondary text */
+  --color-faint: #7c776c; /* tertiary / hints */
+  --color-mist: #31353c; /* hairline borders */
+  --color-mist-strong: #454b54; /* stronger border on hover/focus */
 
-  /* Heritage forest-green accent */
-  --color-accent: #1f3d2f; /* deep heritage green */
-  --color-accent-soft: #e8ede4; /* pale warm-green tint */
-  --color-accent-ring: #1f3d2f59; /* ~35% alpha */
+  /* Emerald accent — fresh, premium on dark */
+  --color-accent: #5fce9b; /* emerald / mint */
+  --color-accent-soft: #1f3a30; /* deep green chip / hover bg */
+  --color-accent-ring: #5fce9b66; /* ~40% alpha */
 
   /* Brass — warm-gold highlights / numbers only */
-  --color-brass: #b0894f;
-  --color-brass-soft: #efe7d6;
+  --color-brass: #cba35c;
+  --color-brass-soft: #36301f;
 
   /* Status */
-  --color-success: #2e5640;
-  --color-danger: #a63d2b;
+  --color-success: #5fce9b;
+  --color-danger: #e8765a;
 
   /* Typography */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
@@ -56,15 +56,10 @@
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ---- Layered shadow ladder (light) ---- */
-  --shadow-1: 0 1px 2px oklch(20% 0.02 80 / 0.05),
-    0 1px 1px oklch(20% 0.02 80 / 0.04);
-  --shadow-2: 0 1px 2px oklch(20% 0.02 80 / 0.05),
-    0 4px 10px -3px oklch(20% 0.02 80 / 0.06),
-    0 10px 24px -8px oklch(20% 0.02 80 / 0.06);
-  --shadow-3: 0 1px 2px oklch(20% 0.02 80 / 0.06),
-    0 8px 20px -6px oklch(20% 0.02 80 / 0.10),
-    0 24px 48px -16px oklch(20% 0.02 80 / 0.14);
+  /* ---- Layered shadow ladder (dark: hairline ring + ambient depth) ---- */
+  --shadow-1: 0 0 0 1px #ffffff0d;
+  --shadow-2: 0 0 0 1px #ffffff12, 0 8px 24px -10px #00000080;
+  --shadow-3: 0 0 0 1px #ffffff1a, 0 18px 44px -12px #000000a6;
   /* Legacy aliases (kept for existing usages) */
   --shadow-luxe: var(--shadow-2);
   --shadow-lifted: var(--shadow-3);
@@ -103,7 +98,7 @@ body::before {
     var(--color-accent-soft) 0%,
     transparent 55%
   );
-  opacity: 0.45;
+  opacity: 0.6;
 }
 
 /* Grain layer intensity, tuned per theme via a second fixed layer. */
@@ -115,8 +110,8 @@ body::after {
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 160px 160px;
-  mix-blend-mode: multiply;
-  opacity: 0.035; /* warm paper grain in light */
+  mix-blend-mode: screen;
+  opacity: 0.03; /* barely-there texture on the dark charcoal */
 }
 
 /* Subtle, premium focus ring */
