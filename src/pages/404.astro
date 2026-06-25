@@ -1,0 +1,56 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Page not found (404) | ZeroUpload";
+const description =
+  "That page doesn't exist — but every ZeroUpload tool is a click away. Convert, compress and edit files free, 100% in your browser.";
+
+const links = [
+  { name: "All tools", href: "/tools" },
+  { name: "Image converter", href: "/image-converter" },
+  { name: "Compress image", href: "/compress-image" },
+  { name: "Merge PDF", href: "/merge-pdf" },
+  { name: "Background remover", href: "/background-remover" },
+];
+---
+
+<Layout title={title} description={description}>
+  <section class="mx-auto flex max-w-2xl flex-col items-center px-6 py-28 text-center">
+    <p class="font-display text-7xl tracking-tight text-accent">404</p>
+    <h1 class="mt-4 font-display text-3xl tracking-tight sm:text-4xl">
+      This page took a detour.
+    </h1>
+    <p class="mx-auto mt-4 max-w-md text-lg text-stone">
+      We couldn't find that page — but nothing's lost. Pick a tool below, all
+      running 100% in your browser.
+    </p>
+
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a
+        href="/"
+        class="rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
+      >
+        Back to home
+      </a>
+      <a
+        href="/tools"
+        class="rounded-full border border-mist bg-surface-1 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-accent"
+      >
+        Browse all tools
+      </a>
+    </div>
+
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-2">
+      {
+        links.map((l) => (
+          <a
+            href={l.href}
+            class="rounded-full border border-mist bg-surface-1 px-4 py-1.5 text-sm text-stone transition-colors hover:border-accent/60 hover:text-ink"
+          >
+            {l.name}
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Layout>

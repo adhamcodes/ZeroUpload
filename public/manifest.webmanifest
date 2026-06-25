@@ -1,0 +1,18 @@
+{
+  "name": "ZeroUpload — Private File Tools",
+  "short_name": "ZeroUpload",
+  "description": "Convert, compress, resize, rotate and edit files 100% in your browser. Nothing is ever uploaded.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#14161a",
+  "theme_color": "#14161a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
