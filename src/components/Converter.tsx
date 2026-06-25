@@ -45,6 +45,11 @@ interface Props {
   lockedFrom?: string;
   /** label for the locked source chip, e.g. "PNG" */
   lockedFromName?: string;
+  /**
+   * Homepage console: start collapsed and "jump open" to reveal the controls
+   * on first click / drag / paste. Tool pages leave this off (always open).
+   */
+  collapsible?: boolean;
 }
 
 type ItemStatus = "preview" | "converting" | "done" | "error";
@@ -130,6 +135,8 @@ const EXT_ALIASES: Record<string, string> = {
   tif: "tiff",
 };
 
+const AUTO = "auto";
+
 let itemSeq = 0;
 
 export default function Converter({
@@ -139,19 +146,27 @@ export default function Converter({
   defaultTo,
   lockedFrom,
   lockedFromName,
+  collapsible = false,
 }: Props) {
   const [items, setItems] = useState<FileItem[]>([]);
   const [selectedTo, setSelectedTo] = useState(
     targets.some((t) => t.id === defaultTo) ? defaultTo : targets[0]?.id ?? "",
   );
+  const [selectedFrom, setSelectedFrom] = useState<string>(AUTO);
   const [dragging, setDragging] = useState(false);
   const [justDropped, setJustDropped] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
+  // Collapsible (homepage) reveal state.
+  const [revealed, setRevealed] = useState(!collapsible);
+  const [justRevealed, setJustRevealed] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<FileItem[]>([]);
   const runTokenRef = useRef(0);
+  // true only when the user *manually* picked a source format (overrides auto).
+  const manualFromRef = useRef(false);
   itemsRef.current = items;
 
   /* whether the current target involves a "big" engine across any source */
@@ -165,9 +180,7 @@ export default function Converter({
   );
 
   const accept = useMemo(() => {
-    const parts = sources.map(
-      (s) => s.accept ?? `.${s.id}`,
-    );
+    const parts = sources.map((s) => s.accept ?? `.${s.id}`);
     return Array.from(new Set(parts.join(",").split(","))).join(",");
   }, [sources]);
 
@@ -179,22 +192,37 @@ export default function Converter({
     name: t.name,
   }));
 
-  /* ---- source detection (skipped when locked) ---- */
-  const detectFrom = useCallback(
+  const fromOptions: DropdownOption[] = useMemo(
+    () => [
+      { id: AUTO, name: "Auto-detect" },
+      ...sources.map((s) => ({ id: s.id, name: s.name })),
+    ],
+    [sources],
+  );
+
+  /* ---- source detection ---- */
+  const detectAuto = useCallback(
     (file: File): string => {
-      if (lockedFrom) return lockedFrom;
       const name = file.name.toLowerCase();
       const rawExt = name.includes(".") ? name.split(".").pop()! : "";
       const ext = EXT_ALIASES[rawExt] ?? rawExt;
-      // direct id match
       if (sources.some((s) => s.id === ext)) return ext;
-      // mime-based best effort
       const mime = file.type;
       const byMime = sources.find((s) => mime && mime.includes(s.id));
       if (byMime) return byMime.id;
       return rawExt || (sources[0]?.id ?? "");
     },
-    [lockedFrom, sources],
+    [sources],
+  );
+
+  const detectFrom = useCallback(
+    (file: File): string => {
+      if (lockedFrom) return lockedFrom;
+      // Only override auto-detection when the user explicitly chose a format.
+      if (manualFromRef.current && selectedFrom !== AUTO) return selectedFrom;
+      return detectAuto(file);
+    },
+    [lockedFrom, selectedFrom, detectAuto],
   );
 
   /* ---- validation (preserved) ---- */
@@ -329,19 +357,31 @@ export default function Converter({
         error: "",
       }));
 
+      // Reflect the detected source in the "From" dropdown (display only, unless
+      // the user has manually overridden it). Keeps per-file detection intact.
+      if (!lockedFrom && !manualFromRef.current && newItems[0]) {
+        setSelectedFrom(newItems[0].fromId);
+      }
+
       setItems((prev) => [...prev, ...newItems]);
 
       // Kick off conversion immediately (cascade); previews resolve in parallel.
-      // Pass the item objects directly — itemsRef hasn't re-rendered yet.
       void runConversion(selectedTo, newItems);
 
-      // Generate source previews without blocking conversion.
       newItems.forEach(async (it) => {
         const url = await makePreviewUrl(it.file, it.fromId);
         if (url) patchItem(it.id, { previewUrl: url });
       });
     },
-    [selectedTo, targetIsBig, validateBatch, detectFrom, runConversion, patchItem],
+    [
+      selectedTo,
+      targetIsBig,
+      validateBatch,
+      detectFrom,
+      runConversion,
+      patchItem,
+      lockedFrom,
+    ],
   );
 
   /* ---- target change -> re-convert everything ---- */
@@ -350,7 +390,6 @@ export default function Converter({
       setSelectedTo(toId);
       const current = itemsRef.current;
       if (current.length === 0) return;
-      // Revoke prior output urls before re-running.
       current.forEach((it) => {
         it.outputs.forEach((o) => URL.revokeObjectURL(o.url));
       });
@@ -367,6 +406,31 @@ export default function Converter({
       void runConversion(toId, current);
     },
     [runConversion],
+  );
+
+  /* ---- source change -> re-detect + re-convert everything ---- */
+  const changeFrom = useCallback(
+    (fromId: string) => {
+      manualFromRef.current = fromId !== AUTO;
+      setSelectedFrom(fromId);
+      const current = itemsRef.current;
+      if (current.length === 0) return;
+      current.forEach((it) => {
+        it.outputs.forEach((o) => URL.revokeObjectURL(o.url));
+      });
+      const updated = current.map((it) => ({
+        ...it,
+        fromId: fromId === AUTO ? detectAuto(it.file) : fromId,
+        status: "converting" as ItemStatus,
+        outputs: [],
+        outBytes: 0,
+        resultThumbUrl: null,
+        error: "",
+      }));
+      setItems(updated);
+      void runConversion(selectedTo, updated);
+    },
+    [detectAuto, runConversion, selectedTo],
   );
 
   const removeItem = useCallback((id: string) => {
@@ -390,6 +454,13 @@ export default function Converter({
     if (inputRef.current) inputRef.current.value = "";
   }, []);
 
+  /* ---- collapsible reveal (homepage) ---- */
+  const reveal = useCallback(() => {
+    setRevealed(true);
+    setJustRevealed(true);
+    window.setTimeout(() => setJustRevealed(false), 440);
+  }, []);
+
   // Revoke every object URL on unmount.
   useEffect(() => {
     return () => {
@@ -400,6 +471,20 @@ export default function Converter({
       });
     };
   }, []);
+
+  // SURPRISE: paste an image/file straight from the clipboard (Ctrl/Cmd+V).
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      const files = e.clipboardData?.files;
+      if (files && files.length > 0) {
+        e.preventDefault();
+        if (collapsible) reveal();
+        void addFiles(files);
+      }
+    }
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+  }, [addFiles, collapsible, reveal]);
 
   const onDrop = useCallback(
     (e: DragEvent) => {
@@ -424,99 +509,47 @@ export default function Converter({
     [targetIsBig, selectedTo],
   );
 
-  return (
-    <div className="w-full">
-      {/* ---- control bar: source -> target picker ---- */}
-      <div className="mb-4 flex flex-wrap items-end justify-center gap-3 sm:gap-4">
-        {lockedFrom && (
-          <>
-            <div className="flex flex-col">
-              <span className="mb-1.5 font-display text-sm font-medium text-ink">
-                From
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-mist bg-surface-2 px-4 py-3 text-sm font-medium text-ink">
-                <FormatGlyph
-                  format={lockedFrom}
-                  className="h-4 w-4 text-accent"
-                />
-                {lockedFromName ?? lockedFrom.toUpperCase()}
-              </span>
-            </div>
-            <div aria-hidden="true" className="pb-3 text-stone">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </div>
-          </>
-        )}
-        <Dropdown
-          label={lockedFrom ? "To" : "Convert to"}
-          ariaLabel="Target format"
-          options={targetOptions}
-          value={selectedTo}
-          onChange={changeTarget}
-          className="w-44"
-        />
-      </div>
-
-      {/* ---- file-first drop zone (the hero) ---- */}
+  /* ---- collapsed cover (homepage only, before first interaction) ---- */
+  if (collapsible && !revealed) {
+    return (
       <div
         role="button"
         tabIndex={0}
-        aria-label={`Add files to convert to ${targetName}`}
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={onKey}
+        aria-label="Start converting a file"
+        onClick={reveal}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            reveal();
+          }
+        }}
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
         }}
         onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          reveal();
+          void addFiles(e.dataTransfer.files);
+        }}
         className={[
-          "relative flex w-full cursor-pointer flex-col items-center justify-center text-center",
+          "flex w-full cursor-pointer flex-col items-center justify-center px-8 py-14 text-center",
           "rounded-[var(--radius-xl)] border-2 border-dashed transition-colors duration-200",
-          hasItems ? "px-6 py-8" : "px-8 py-16",
-          justDropped ? "animate-drop-react" : "",
           dragging
             ? "border-accent bg-accent-soft"
             : "border-mist bg-surface-1 hover:border-accent",
         ].join(" ")}
       >
-        <input
-          ref={inputRef}
-          type="file"
-          accept={accept}
-          multiple
-          className="hidden"
-          onChange={(e) => {
-            void addFiles(e.target.files);
-            e.currentTarget.value = "";
-          }}
-        />
-
-        <div
-          className={[
-            "flex items-center justify-center rounded-full bg-accent-soft text-accent",
-            hasItems ? "mb-2 h-9 w-9" : "mb-4 h-12 w-12",
-          ].join(" ")}
-        >
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent">
           <svg
-            width={hasItems ? 18 : 22}
-            height={hasItems ? 18 : 22}
+            width="26"
+            height="26"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.8"
+            strokeWidth="1.7"
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
@@ -526,88 +559,235 @@ export default function Converter({
             <path d="M4 20h16" />
           </svg>
         </div>
+        <p className="font-display text-2xl text-ink">
+          Convert a file
+        </p>
+        <p className="mt-1.5 text-stone">
+          Click to start — or drop a file right here
+        </p>
+        <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone">
+          <svg
+            className="animate-wifi-pulse"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+          </svg>
+          Nothing is uploaded. Your files never leave this browser.
+        </p>
+      </div>
+    );
+  }
 
-        <p
+  return (
+    <div className={["w-full", justRevealed ? "animate-console-pop" : ""].join(" ")}>
+      <div className={collapsible ? "animate-reveal" : ""}>
+        {/* ---- control bar: From -> To ---- */}
+        <div className="mb-4 flex flex-wrap items-end justify-center gap-3 sm:gap-4">
+          {lockedFrom ? (
+            <>
+              <div className="flex flex-col">
+                <span className="mb-1.5 font-display text-sm font-medium text-ink">
+                  From
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-mist bg-surface-2 px-4 py-3 text-sm font-medium text-ink">
+                  <FormatGlyph format={lockedFrom} className="h-4 w-4 text-accent" />
+                  {lockedFromName ?? lockedFrom.toUpperCase()}
+                </span>
+              </div>
+              <ArrowRight />
+            </>
+          ) : (
+            <>
+              <Dropdown
+                label="Convert from"
+                ariaLabel="Source format"
+                options={fromOptions}
+                value={selectedFrom}
+                onChange={changeFrom}
+                className="w-40"
+              />
+              <ArrowRight />
+            </>
+          )}
+          <Dropdown
+            label={lockedFrom ? "To" : "Convert to"}
+            ariaLabel="Target format"
+            options={targetOptions}
+            value={selectedTo}
+            onChange={changeTarget}
+            className="w-40"
+          />
+        </div>
+
+        {/* ---- file-first drop zone (the hero) ---- */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Add files to convert to ${targetName}`}
+          onClick={() => inputRef.current?.click()}
+          onKeyDown={onKey}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
           className={[
-            "font-display text-ink",
-            hasItems ? "text-base" : "text-xl",
+            "relative flex w-full cursor-pointer flex-col items-center justify-center text-center",
+            "rounded-[var(--radius-xl)] border-2 border-dashed transition-colors duration-200",
+            hasItems ? "px-6 py-8" : "px-8 py-16",
+            justDropped ? "animate-drop-react" : "",
+            dragging
+              ? "border-accent bg-accent-soft"
+              : "border-mist bg-surface-1 hover:border-accent",
           ].join(" ")}
         >
-          {hasItems
-            ? "Drop more files"
-            : `Drop your ${lockedFromName ?? "file"}${lockedFrom ? "" : "s"} here`}
+          <input
+            ref={inputRef}
+            type="file"
+            accept={accept}
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              void addFiles(e.target.files);
+              e.currentTarget.value = "";
+            }}
+          />
+
+          <div
+            className={[
+              "flex items-center justify-center rounded-full bg-accent-soft text-accent",
+              hasItems ? "mb-2 h-9 w-9" : "mb-4 h-12 w-12",
+            ].join(" ")}
+          >
+            <svg
+              width={hasItems ? 18 : 22}
+              height={hasItems ? 18 : 22}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 16V4" />
+              <path d="m6 10 6-6 6 6" />
+              <path d="M4 20h16" />
+            </svg>
+          </div>
+
+          <p
+            className={[
+              "font-display text-ink",
+              hasItems ? "text-base" : "text-xl",
+            ].join(" ")}
+          >
+            {hasItems
+              ? "Drop more files"
+              : `Drop your ${lockedFromName ?? "file"}${lockedFrom ? "" : "s"} here`}
+          </p>
+          {!hasItems && (
+            <p className="mt-1 text-sm text-stone">
+              or click to choose — converted to {targetName} on your device
+            </p>
+          )}
+          {!hasItems && device.lowMemory && (
+            <p className="mt-3 text-xs text-stone">
+              Optimised for this device: up to {device.maxFiles} file(s),{" "}
+              {prettyBytes(device.maxFileBytes)} each.
+            </p>
+          )}
+        </div>
+
+        <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone">
+          <svg
+            className="animate-wifi-pulse"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+          </svg>
+          Nothing is uploaded. Your files never leave this browser. You can even
+          paste an image with Ctrl/Cmd+V.
         </p>
-        {!hasItems && (
-          <p className="mt-1 text-sm text-stone">
-            or click to choose — converted to {targetName} on your device
-          </p>
+
+        {error && (
+          <div className="mt-4 rounded-[var(--radius-md)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
+            {error}
+          </div>
         )}
-        {!hasItems && device.lowMemory && (
-          <p className="mt-3 text-xs text-stone">
-            Optimised for this device: up to {device.maxFiles} file(s),{" "}
-            {prettyBytes(device.maxFileBytes)} each.
-          </p>
+        {info && (
+          <div className="mt-4 rounded-[var(--radius-md)] border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
+            {info}
+          </div>
+        )}
+
+        {/* ---- file cards ---- */}
+        {hasItems && (
+          <div className="mt-6 space-y-3">
+            {items.map((item, idx) => (
+              <FileCard
+                key={item.id}
+                item={item}
+                index={idx}
+                onRemove={() => removeItem(item.id)}
+              />
+            ))}
+
+            <div className="flex items-center justify-between pt-1">
+              <button
+                onClick={reset}
+                disabled={busy}
+                className="text-sm text-stone underline-offset-4 transition-colors hover:text-ink hover:underline disabled:opacity-50"
+              >
+                Clear all
+              </button>
+              <button
+                onClick={() => inputRef.current?.click()}
+                className="text-sm font-medium text-accent underline-offset-4 hover:underline"
+              >
+                Add more files
+              </button>
+            </div>
+          </div>
         )}
       </div>
+    </div>
+  );
+}
 
-      <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone">
-        <svg
-          className="animate-wifi-pulse"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-        </svg>
-        Nothing is uploaded. Your files never leave this browser.
-      </p>
-
-      {error && (
-        <div className="mt-4 rounded-[var(--radius-md)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
-          {error}
-        </div>
-      )}
-      {info && (
-        <div className="mt-4 rounded-[var(--radius-md)] border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
-          {info}
-        </div>
-      )}
-
-      {/* ---- file cards ---- */}
-      {hasItems && (
-        <div className="mt-6 space-y-3">
-          {items.map((item, idx) => (
-            <FileCard
-              key={item.id}
-              item={item}
-              index={idx}
-              onRemove={() => removeItem(item.id)}
-            />
-          ))}
-
-          <div className="flex items-center justify-between pt-1">
-            <button
-              onClick={reset}
-              disabled={busy}
-              className="text-sm text-stone underline-offset-4 transition-colors hover:text-ink hover:underline disabled:opacity-50"
-            >
-              Clear all
-            </button>
-            <button
-              onClick={() => inputRef.current?.click()}
-              className="text-sm font-medium text-accent underline-offset-4 hover:underline"
-            >
-              Add more files
-            </button>
-          </div>
-        </div>
-      )}
+function ArrowRight() {
+  return (
+    <div aria-hidden="true" className="pb-3 text-stone">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M5 12h14" />
+        <path d="m12 5 7 7-7 7" />
+      </svg>
     </div>
   );
 }
@@ -635,8 +815,6 @@ function FileCard({ item, index, onRemove }: FileCardProps) {
   const thumbUrl =
     status === "done" && item.resultThumbUrl ? item.resultThumbUrl : previewUrl;
 
-  // Local image-load state so a failed source preview (e.g. HEIC) doesn't keep
-  // a later, valid result thumbnail hidden. Resets whenever the source changes.
   const [imgError, setImgError] = useState(false);
   useEffect(() => {
     setImgError(false);
@@ -684,7 +862,10 @@ function FileCard({ item, index, onRemove }: FileCardProps) {
 
         {status === "preview" && (
           <p className="mt-1 text-xs text-stone">
-            {prettyBytes(file.size)} · queued
+            <span className="font-medium text-stone">
+              {item.fromId.toUpperCase()}
+            </span>{" "}
+            · {prettyBytes(file.size)} · queued
           </p>
         )}
 

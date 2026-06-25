@@ -13,33 +13,33 @@
   (raised cards: result, popover) -> surface-3 (overlays/dropdown menus).
 */
 @theme {
-  /* ---- Light "Porcelain" — warm, layered ---- */
-  --color-canvas: oklch(96.5% 0.008 95); /* warm off-white page base */
-  --color-paper: oklch(100% 0 0); /* pure white cards / surfaces (alias of surface-1) */
+  /* ---- "Heritage Noir" — deep charcoal, emerald & brass (single dark theme) ---- */
+  --color-canvas: #14161a; /* deep near-black page base */
+  --color-paper: #1b1e23; /* alias of surface-1 */
 
-  --color-surface-1: oklch(100% 0 0); /* base card */
-  --color-surface-2: oklch(99% 0.004 95); /* raised card (result, popover) */
-  --color-surface-3: oklch(100% 0 0); /* overlay / dropdown menu */
-  --color-surface: oklch(100% 0 0); /* legacy alias */
+  --color-surface-1: #1b1e23; /* base card */
+  --color-surface-2: #22262c; /* raised card (result, popover) */
+  --color-surface-3: #292e35; /* overlay / dropdown menu (highest) */
+  --color-surface: #1b1e23; /* legacy alias */
 
-  --color-ink: oklch(15% 0.02 70); /* primary text */
-  --color-stone: oklch(48% 0.02 70); /* muted secondary text (AA on canvas) */
-  --color-faint: oklch(62% 0.015 70); /* tertiary / hints */
-  --color-mist: oklch(91% 0.015 90); /* hairline borders */
-  --color-mist-strong: oklch(85% 0.018 90); /* stronger border on hover/focus */
+  --color-ink: #f3efe6; /* warm near-white primary text */
+  --color-stone: #a7a195; /* warm muted secondary text */
+  --color-faint: #7c776c; /* tertiary / hints */
+  --color-mist: #31353c; /* hairline borders */
+  --color-mist-strong: #454b54; /* stronger border on hover/focus */
 
-  /* Pine accent */
-  --color-accent: oklch(37% 0.08 165); /* deep pine green */
-  --color-accent-soft: oklch(94% 0.02 155); /* pale pine tint */
-  --color-accent-ring: oklch(37% 0.08 165 / 0.35);
+  /* Emerald accent — fresh, premium on dark */
+  --color-accent: #5fce9b; /* emerald / mint */
+  --color-accent-soft: #1f3a30; /* deep green chip / hover bg */
+  --color-accent-ring: #5fce9b66; /* ~40% alpha */
 
-  /* Brass accent — RARE warm-gold highlights / numbers only */
-  --color-brass: oklch(66% 0.12 70);
-  --color-brass-soft: oklch(92% 0.03 80);
+  /* Brass — warm-gold highlights / numbers only */
+  --color-brass: #cba35c;
+  --color-brass-soft: #36301f;
 
   /* Status */
-  --color-success: oklch(45% 0.11 165);
-  --color-danger: oklch(45% 0.16 25);
+  --color-success: #5fce9b;
+  --color-danger: #e8765a;
 
   /* Typography */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
@@ -56,54 +56,16 @@
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ---- Layered shadow ladder (light) ---- */
-  --shadow-1: 0 1px 2px oklch(20% 0.02 80 / 0.05),
-    0 1px 1px oklch(20% 0.02 80 / 0.04);
-  --shadow-2: 0 1px 2px oklch(20% 0.02 80 / 0.05),
-    0 4px 10px -3px oklch(20% 0.02 80 / 0.06),
-    0 10px 24px -8px oklch(20% 0.02 80 / 0.06);
-  --shadow-3: 0 1px 2px oklch(20% 0.02 80 / 0.06),
-    0 8px 20px -6px oklch(20% 0.02 80 / 0.10),
-    0 24px 48px -16px oklch(20% 0.02 80 / 0.14);
+  /* ---- Layered shadow ladder (dark: hairline ring + ambient depth) ---- */
+  --shadow-1: 0 0 0 1px #ffffff0d;
+  --shadow-2: 0 0 0 1px #ffffff12, 0 8px 24px -10px #00000080;
+  --shadow-3: 0 0 0 1px #ffffff1a, 0 18px 44px -12px #000000a6;
   /* Legacy aliases (kept for existing usages) */
   --shadow-luxe: var(--shadow-2);
   --shadow-lifted: var(--shadow-3);
 }
 
-/* ---- Vault — dark mode: deep GREEN-CHARCOAL, layered (never flat black) ---- */
-[data-theme="dark"] {
-  --color-canvas: oklch(18% 0.022 168); /* deep green-charcoal base */
-  --color-paper: oklch(22% 0.025 168); /* card (surface-1) */
-  --color-surface-1: oklch(22% 0.025 168);
-  --color-surface-2: oklch(25.5% 0.028 168); /* raised card — visibly lighter */
-  --color-surface-3: oklch(28% 0.03 168); /* dropdown / overlay — highest */
-  --color-surface: oklch(22% 0.025 168);
-
-  --color-ink: oklch(95% 0.01 150);
-  --color-stone: oklch(72% 0.02 160); /* lifted for AA on dark */
-  --color-faint: oklch(60% 0.02 160);
-  --color-mist: oklch(32% 0.02 168); /* visible hairline on dark */
-  --color-mist-strong: oklch(42% 0.025 168);
-
-  --color-accent: oklch(80% 0.14 165); /* mint glow */
-  --color-accent-soft: oklch(30% 0.06 165);
-  --color-accent-ring: oklch(80% 0.14 165 / 0.4);
-
-  --color-brass: oklch(74% 0.12 75);
-  --color-brass-soft: oklch(30% 0.05 75);
-
-  --color-success: oklch(80% 0.14 165);
-  --color-danger: oklch(68% 0.17 25);
-
-  /* Dark depth = surface tint + hairline ring + soft ambient, not heavy drop shadow */
-  --shadow-1: 0 0 0 1px oklch(38% 0.02 168 / 0.6);
-  --shadow-2: 0 0 0 1px oklch(40% 0.02 168 / 0.7),
-    0 8px 24px -10px oklch(0% 0 0 / 0.5);
-  --shadow-3: 0 0 0 1px oklch(45% 0.025 168 / 0.8),
-    0 16px 40px -12px oklch(0% 0 0 / 0.6);
-  --shadow-luxe: var(--shadow-2);
-  --shadow-lifted: var(--shadow-3);
-}
+/* Single matte theme by design — the light/dark toggle was removed. */
 
 html {
   scroll-behavior: smooth;
@@ -136,7 +98,7 @@ body::before {
     var(--color-accent-soft) 0%,
     transparent 55%
   );
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 /* Grain layer intensity, tuned per theme via a second fixed layer. */
@@ -148,14 +110,8 @@ body::after {
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 160px 160px;
-  mix-blend-mode: multiply;
-  opacity: 0.035; /* warm paper grain in light */
-}
-
-[data-theme="dark"] body::after,
-:root[data-theme="dark"] body::after {
   mix-blend-mode: screen;
-  opacity: 0.02; /* barely-there texture on the green-charcoal */
+  opacity: 0.03; /* barely-there texture on the dark charcoal */
 }
 
 /* Subtle, premium focus ring */
@@ -217,6 +173,67 @@ body::after {
   background-position: 0 0, 0 7px, 7px -7px, -7px 0;
 }
 
+/* ---------- Floating homepage system ---------- */
+
+/* One-shot entrance — elements rise and settle into place on load. */
+@keyframes float-in {
+  0% { opacity: 0; transform: translateY(26px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.float-in { animation: float-in 0.6s var(--ease-out) both; }
+
+/* The floating console: a gentle, CRISP 2D drift (no 3D tilt — that blurred the
+   text). It pauses the moment you hover or focus inside, so the dropdowns and
+   controls stay rock-steady and sharp. */
+@keyframes console-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+.console-float { animation: console-float 7s var(--ease-in-out) infinite; }
+.console-float:hover,
+.console-float:focus-within { animation-play-state: paused; }
+
+/* Glossy shine sweep across a tool card on hover (surprise polish). */
+.tool-card { position: relative; overflow: hidden; }
+.tool-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    oklch(100% 0 0 / 0.18) 50%,
+    transparent 100%
+  );
+  transform: skewX(-18deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.tool-card:hover::after {
+  opacity: 1;
+  animation: card-shine 0.9s var(--ease-out);
+}
+@keyframes card-shine {
+  0% { left: -75%; }
+  100% { left: 130%; }
+}
+
+/* Console "jump" when the floating box reveals its controls. */
+@keyframes console-pop {
+  0% { transform: scale(1); }
+  28% { transform: scale(0.985); }
+  60% { transform: scale(1.018); }
+  100% { transform: scale(1); }
+}
+.animate-console-pop { animation: console-pop 0.42s var(--ease-out); }
+
+/* Staggered reveal of the console controls. */
+.animate-reveal { animation: card-in 0.4s var(--ease-out) both; }
+
 /* Respect reduced motion everywhere */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -224,7 +241,12 @@ body::after {
   .animate-card-in,
   .animate-settle,
   .animate-progress-sweep,
-  .animate-wifi-pulse {
+  .animate-wifi-pulse,
+  .animate-console-pop,
+  .animate-reveal,
+  .console-float,
+  .float-in {
     animation: none !important;
   }
+  .tool-card:hover::after { animation: none !important; opacity: 0 !important; }
 }

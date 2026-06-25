@@ -2,11 +2,17 @@
  * bgRemove.ts — 100% in-browser AI background removal.
  *
  * Library: @huggingface/transformers (Apache-2.0)
- * Model:   onnx-community/BiRefNet_lite-ONNX (MIT, general-purpose matting)
+ * Model:   Xenova/modnet (Apache-2.0) — fast, lightweight portrait matting
+ *          (~24 MB). Chosen for reliability: heavier general models (BiRefNet,
+ *          ~200 MB) exhaust browser memory in WASM and break on Firefox WebGPU.
  *
  * THE PROMISE IS INTACT: the user's image NEVER leaves the device. Only the
  * model weights are fetched once from the Hugging Face CDN, then cached by the
- * browser. Inference runs entirely on-device via WebGPU (fast) or WASM (compat).
+ * browser. Inference runs entirely on-device on the WASM backend, which works
+ * on every modern browser.
+ *
+ * We use the high-level `background-removal` pipeline, which handles the model's
+ * input/output details internally and returns an RGBA cut-out image.
  *
  * This is a self-contained engine — it does not touch convert.ts or any of the
  * existing conversion engines.
@@ -26,38 +32,38 @@ export interface BgResult {
   height: number;
 }
 
-/** General-purpose matting model (people, products, logos, objects). MIT. */
-const MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
+/** Lightweight, web-proven portrait matting model. Apache-2.0. */
+const MODEL_ID = "Xenova/modnet";
 
-// The transformers.js module + model/processor are loaded once and reused for
-// every image in the session.
-type Loaded = { model: any; processor: any; RawImage: any };
-let modelPromise: Promise<Loaded> | null = null;
+// The pipeline is loaded once and reused for every image in the tab.
+let segmenterPromise: Promise<any> | null = null;
 
-function hasWebGPU(): boolean {
-  return typeof navigator !== "undefined" && "gpu" in navigator;
+/** Turn any thrown value (Error, string, DOMException, object) into text. */
+function describe(err: any): string {
+  if (err == null) return "unknown error";
+  if (err instanceof Error) return `${err.name}: ${err.message}`;
+  if (typeof err === "string") return err;
+  if (typeof err?.message === "string") return err.message;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
 }
 
-/** Cap the working resolution to keep memory sane (esp. on phones). */
-function maxEdge(): number {
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua);
-  return isMobile ? 2048 : 4096;
-}
+async function getSegmenter(onProgress?: (p: BgProgress) => void): Promise<any> {
+  if (segmenterPromise) return segmenterPromise;
 
-async function loadModel(onProgress?: (p: BgProgress) => void): Promise<Loaded> {
-  if (modelPromise) return modelPromise;
-
-  modelPromise = (async () => {
+  segmenterPromise = (async () => {
     // Dynamic import: transformers.js is only ever pulled into the browser,
     // never at build/SSR time, and only when the user actually removes a bg.
     const tf: any = await import("@huggingface/transformers");
-    const { AutoModel, AutoProcessor, RawImage, env } = tf;
+    const { pipeline, env } = tf;
 
     // We only use the remote HF model; never probe for local files.
     env.allowLocalModels = false;
     // Single-threaded WASM avoids requiring cross-origin isolation headers on
-    // a static host like Cloudflare Pages. (Ignored on the WebGPU path.)
+    // a static host like Cloudflare Pages.
     try {
       if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.numThreads = 1;
     } catch {
@@ -77,102 +83,41 @@ async function loadModel(onProgress?: (p: BgProgress) => void): Promise<Loaded> 
       }
     };
 
-    async function build(device: "webgpu" | "wasm", dtype: "fp16" | "fp32") {
-      const model = await AutoModel.from_pretrained(MODEL_ID, {
-        device,
-        dtype,
-        progress_callback,
-      });
-      const processor = await AutoProcessor.from_pretrained(MODEL_ID, {
-        progress_callback,
-      });
-      return { model, processor, RawImage } as Loaded;
-    }
-
-    if (hasWebGPU()) {
-      try {
-        return await build("webgpu", "fp16");
-      } catch (e) {
-        // Some drivers advertise WebGPU but fail to run — fall back to WASM.
-        console.warn("[ZeroUpload] WebGPU path failed, falling back to WASM:", e);
-      }
-    }
-    return await build("wasm", "fp32");
+    // WASM backend: small model, runs reliably on every browser (incl. Firefox).
+    return await pipeline("background-removal", MODEL_ID, {
+      device: "wasm",
+      dtype: "fp32",
+      progress_callback,
+    });
   })();
 
   try {
-    return await modelPromise;
+    return await segmenterPromise;
   } catch (e) {
     // Allow a later retry instead of caching a rejected promise forever.
-    modelPromise = null;
-    throw e;
+    segmenterPromise = null;
+    throw new Error(`Couldn't load the AI model — ${describe(e)}`);
   }
 }
 
-/**
- * Remove the background from an image and return a transparent PNG.
- * Everything runs on-device. Throws a friendly Error on unsupported input.
- */
-export async function removeBackground(
-  file: File,
-  onProgress?: (p: BgProgress) => void,
-): Promise<BgResult> {
-  const { model, processor, RawImage } = await loadModel(onProgress);
-
-  onProgress?.({ stage: "infer", label: "Finding the subject…" });
-
-  // Decode the original (capped) for full-resolution compositing.
-  let bitmap: ImageBitmap;
-  try {
-    bitmap = await createImageBitmap(file);
-  } catch {
-    throw new Error(
-      "This image type can't be read in the browser. Try a JPG, PNG or WEBP.",
-    );
-  }
-
-  const longEdge = Math.max(bitmap.width, bitmap.height);
-  const scale = longEdge > maxEdge() ? maxEdge() / longEdge : 1;
-  const w = Math.max(1, Math.round(bitmap.width * scale));
-  const h = Math.max(1, Math.round(bitmap.height * scale));
-
-  // Run the model on the original via a throwaway object URL.
-  const url = URL.createObjectURL(file);
-  let mask: any;
-  try {
-    const image = await RawImage.fromURL(url);
-    const { pixel_values } = await processor(image);
-    const out = await model({ input_image: pixel_values });
-    const outTensor = out.output_image ?? out.output ?? Object.values(out)[0];
-    mask = await RawImage.fromTensor(
-      outTensor[0].sigmoid().mul(255).to("uint8"),
-    ).resize(w, h);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-
-  onProgress?.({ stage: "compose", label: "Cutting out the background…" });
+/** Encode an RGBA RawImage to a transparent PNG blob via a canvas. */
+async function rawImageToPngBlob(img: any): Promise<Blob> {
+  // Ensure 4 channels (RGBA) so transparency is preserved.
+  const rgba = typeof img.rgba === "function" ? img.rgba() : img;
+  const width: number = rgba.width;
+  const height: number = rgba.height;
 
   const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas isn't available in this browser.");
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  try {
-    bitmap.close();
-  } catch {
-    /* not all browsers implement close() */
-  }
 
-  const imageData = ctx.getImageData(0, 0, w, h);
-  const data = imageData.data;
-  const m: ArrayLike<number> = mask.data;
-  const step = mask.channels || 1;
-  const px = w * h;
-  for (let p = 0; p < px; p++) {
-    data[p * 4 + 3] = m[p * step];
-  }
+  const imageData = new ImageData(
+    new Uint8ClampedArray(rgba.data),
+    width,
+    height,
+  );
   ctx.putImageData(imageData, 0, 0);
 
   const blob = await new Promise<Blob>((resolve, reject) => {
@@ -184,16 +129,54 @@ export async function removeBackground(
 
   canvas.width = 0;
   canvas.height = 0;
+  return blob;
+}
 
+/**
+ * Remove the background from an image and return a transparent PNG.
+ * Everything runs on-device. Throws a friendly Error on failure.
+ */
+export async function removeBackground(
+  file: File,
+  onProgress?: (p: BgProgress) => void,
+): Promise<BgResult> {
+  const segmenter = await getSegmenter(onProgress);
+
+  onProgress?.({ stage: "infer", label: "Removing the background…" });
+
+  const url = URL.createObjectURL(file);
+  let outImg: any;
+  try {
+    const result = await segmenter(url);
+    outImg = Array.isArray(result) ? result[0] : result;
+  } catch (err) {
+    console.error("[ZeroUpload] background removal failed:", err);
+    throw new Error(`Background removal failed — ${describe(err)}`);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+
+  if (!outImg || !outImg.data) {
+    throw new Error("The model returned no image. Please try another photo.");
+  }
+
+  onProgress?.({ stage: "compose", label: "Saving your transparent PNG…" });
+
+  const blob = await rawImageToPngBlob(outImg);
   const base = file.name.replace(/\.[^.]+$/, "") || "image";
-  return { blob, filename: `${base}-no-bg.png`, width: w, height: h };
+  return {
+    blob,
+    filename: `${base}-no-bg.png`,
+    width: outImg.width,
+    height: outImg.height,
+  };
 }
 
 /** Whether this browser can run the on-device model at all. */
 export function backgroundRemovalSupported(): boolean {
   return (
     typeof window !== "undefined" &&
-    typeof createImageBitmap === "function" &&
+    typeof document !== "undefined" &&
     typeof WebAssembly === "object"
   );
 }
