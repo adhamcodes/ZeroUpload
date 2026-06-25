@@ -138,3 +138,94 @@ export async function compressImage(
     ms: Math.max(1, Math.round(performance.now() - start)),
   };
 }
+
+
+export interface ResizeOptions {
+  /** target width in px (optional) */
+  width?: number;
+  /** target height in px (optional) */
+  height?: number;
+  /** keep the original aspect ratio (scales to fit the given dimension[s]) */
+  keepAspect: boolean;
+  /** if set (> 0), resize by this percentage and ignore width/height */
+  percent?: number;
+  /** output format; "auto" keeps a sensible type based on the source */
+  format: CompressFormat;
+  /** lossy quality 0..1 (ignored for png) */
+  quality: number;
+}
+
+/**
+ * Resize (and optionally re-encode) a single image, entirely client-side.
+ */
+export async function resizeImage(
+  file: File,
+  opts: ResizeOptions,
+): Promise<ImageToolResult> {
+  const start = performance.now();
+  const { mime, ext } = resolveOutput(file, opts.format);
+
+  const bitmap = await loadBitmap(file);
+  const { width: ow, height: oh } = dimensionsOf(bitmap);
+
+  let tw = ow;
+  let th = oh;
+
+  if (opts.percent && opts.percent > 0) {
+    tw = Math.round((ow * opts.percent) / 100);
+    th = Math.round((oh * opts.percent) / 100);
+  } else if (opts.keepAspect && (opts.width || opts.height)) {
+    if (opts.width && opts.height) {
+      const scale = Math.min(opts.width / ow, opts.height / oh);
+      tw = Math.round(ow * scale);
+      th = Math.round(oh * scale);
+    } else if (opts.width) {
+      tw = opts.width;
+      th = Math.round((oh * opts.width) / ow);
+    } else if (opts.height) {
+      th = opts.height;
+      tw = Math.round((ow * opts.height) / oh);
+    }
+  } else if (opts.width || opts.height) {
+    tw = opts.width ?? ow;
+    th = opts.height ?? oh;
+  }
+
+  tw = Math.max(1, Math.round(tw));
+  th = Math.max(1, Math.round(th));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = tw;
+  canvas.height = th;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Your browser could not create a drawing canvas.");
+
+  if (mime === "image/jpeg") {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, tw, th);
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap as CanvasImageSource, 0, 0, tw, th);
+  if ("close" in bitmap && typeof bitmap.close === "function") bitmap.close();
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Could not encode the image."))),
+      mime,
+      opts.quality,
+    );
+  });
+
+  canvas.width = 0;
+  canvas.height = 0;
+
+  const base = file.name.replace(/\.[^.]+$/, "") || "image";
+  return {
+    blob,
+    filename: `${base}-${tw}x${th}.${ext}`,
+    width: tw,
+    height: th,
+    ms: Math.max(1, Math.round(performance.now() - start)),
+  };
+}
