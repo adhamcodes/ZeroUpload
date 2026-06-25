@@ -217,6 +217,34 @@ body::after {
   background-position: 0 0, 0 7px, 7px -7px, -7px 0;
 }
 
+/* ---------- Floating homepage system (user-requested ambient motion) ---------- */
+
+/* Gentle idle float for the tool cards — makes them feel like floating objects. */
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+.float-bob { animation: float-bob 6s var(--ease-in-out) infinite; will-change: transform; }
+
+/* One-shot entrance — elements rise and settle into place on load. */
+@keyframes float-in {
+  0% { opacity: 0; transform: translateY(26px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.float-in { animation: float-in 0.6s var(--ease-out) both; }
+
+/* Cursor-tilt console: parent provides the 3D perspective, child gets the rotate. */
+.tilt-scene { perspective: 1200px; }
+.tilt-card {
+  transform: rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg));
+  transition: transform 0.3s var(--ease-out);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Pause a card's idle bob while it's hovered (lifts and holds). */
+.tool-card:hover .float-bob { animation-play-state: paused; }
+
 /* Respect reduced motion everywhere */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -224,7 +252,10 @@ body::after {
   .animate-card-in,
   .animate-settle,
   .animate-progress-sweep,
-  .animate-wifi-pulse {
+  .animate-wifi-pulse,
+  .float-bob,
+  .float-in {
     animation: none !important;
   }
+  .tilt-card { transition: none !important; transform: none !important; }
 }

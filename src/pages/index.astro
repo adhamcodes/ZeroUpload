@@ -1,13 +1,28 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Converter from "../components/Converter.tsx";
 import ConversionGrid from "../components/ConversionGrid.astro";
-import { CONVERSIONS, CATEGORIES } from "../data/conversions";
+import { CONVERSIONS, FORMAT_BY_ID } from "../data/conversions";
 
 const title =
   "ZeroUpload — Convert Files 100% in Your Browser. Zero Uploads, Zero Limits.";
 const description =
   "Convert images, PDFs and audio privately and instantly. Files never leave your device — no upload, no signup, no limits. Works even offline. The private file converter.";
 
+// ---- Universal converter wiring: every conversion in one floating console ----
+const sourceIds = Array.from(new Set(CONVERSIONS.map((c) => c.from.id)));
+const targetIds = Array.from(new Set(CONVERSIONS.map((c) => c.to.id)));
+const engineMap = Object.fromEntries(
+  CONVERSIONS.map((c) => [`${c.from.id}-${c.to.id}`, c.engine]),
+);
+const sources = sourceIds.map((id) => ({
+  id,
+  name: FORMAT_BY_ID[id].name,
+  accept: FORMAT_BY_ID[id].accept ?? `.${id},${FORMAT_BY_ID[id].mime}`,
+}));
+const targets = targetIds.map((id) => ({ id, name: FORMAT_BY_ID[id].name }));
+
+// ---- Featured conversions (kept) ----
 const featuredSlugs = [
   "heic-to-jpg", "png-to-jpg", "webp-to-png", "svg-to-png",
   "pdf-to-jpg", "jpg-to-pdf", "mp3-to-wav", "m4a-to-mp3",
@@ -16,11 +31,28 @@ const featured = featuredSlugs
   .map((s) => CONVERSIONS.find((c) => c.slug === s))
   .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
-const categoryCards = [
-  { ...CATEGORIES.image, blurb: "PNG, JPG, WEBP, HEIC, SVG, GIF, BMP" },
-  { ...CATEGORIES.document, blurb: "PDF to image · image to PDF" },
-  { ...CATEGORIES.audio, blurb: "MP3, WAV, OGG, M4A, FLAC, AAC" },
+// ---- Floating tool cards ----
+const toolCards = [
+  { title: "PDF Tools", href: "/pdf", blurb: "PDF ↔ images, and more", icon: "pdf" },
+  { title: "Audio Tools", href: "/audio-converter", blurb: "MP3, WAV, OGG, M4A, FLAC", icon: "audio" },
+  { title: "Image Tools", href: "/image-converter", blurb: "PNG, JPG, WEBP, HEIC, SVG", icon: "image" },
+  { title: "AI Background Remover", href: "/background-remover", blurb: "Erase backgrounds on-device", icon: "bg", badge: "AI" },
 ];
+
+function toolIcon(kind: string): string[] {
+  switch (kind) {
+    case "pdf":
+      return ['<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>', '<path d="M14 2v6h6"/>'];
+    case "audio":
+      return ['<path d="M9 18V5l12-2v13"/>', '<circle cx="6" cy="18" r="3"/>', '<circle cx="18" cy="16" r="3"/>'];
+    case "image":
+      return ['<rect x="3" y="3" width="18" height="18" rx="2"/>', '<circle cx="9" cy="9" r="2"/>', '<path d="m21 15-3.5-3.5L11 18"/>'];
+    case "bg":
+      return ['<circle cx="6" cy="6" r="3"/>', '<circle cx="6" cy="18" r="3"/>', '<path d="M20 4 8.12 15.88"/>', '<path d="M14.47 14.48 20 20"/>', '<path d="M8.12 8.12 12 12"/>'];
+    default:
+      return ['<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'];
+  }
+}
 
 const jsonLd = [
   {
@@ -35,81 +67,100 @@ const jsonLd = [
 
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <!-- HERO -->
-  <section class="mx-auto max-w-3xl px-6 pt-20 pb-12 text-center sm:pt-28">
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-2 text-center sm:pt-20">
     <span
-      class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
+      class="float-in inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
     >
       <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
       100% private · nothing is ever uploaded
     </span>
 
-    <h1 class="mt-6 font-display text-5xl leading-[1.05] tracking-tight sm:text-6xl">
+    <h1
+      class="float-in mt-6 font-display text-5xl leading-[1.05] tracking-tight sm:text-6xl"
+      style="animation-delay: 60ms"
+    >
       Convert files without<br /> uploading a thing.
     </h1>
 
-    <p class="mx-auto mt-6 max-w-xl text-lg text-stone">
-      ZeroUpload converts your files entirely inside your browser. No upload, no
-      signup, no limits — and it even works offline. Your files never leave your
-      device.
+    <p
+      class="float-in mx-auto mt-5 max-w-xl text-lg text-stone"
+      style="animation-delay: 120ms"
+    >
+      Drop a file below — it's converted entirely inside your browser. No upload,
+      no signup, no limits, even works offline.
     </p>
+  </section>
 
-    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-      <a
-        href={`/${CATEGORIES.image.slug}`}
-        class="rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
+  <!-- FLOATING CONSOLE -->
+  <section class="px-6 pt-6 pb-4">
+    <div class="tilt-scene float-in relative mx-auto max-w-2xl" style="animation-delay: 180ms">
+      <!-- soft floating aura behind the console -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[115%] w-[115%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-soft opacity-50 blur-3xl"
       >
-        Convert a file
-      </a>
-      <a
-        href="#how"
-        class="rounded-full border border-mist bg-paper px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-accent/60"
+      </div>
+
+      <div
+        data-tilt
+        class="tilt-card rounded-[1.5rem] border border-mist bg-surface-1 p-5 shadow-[var(--shadow-3)] sm:p-7"
       >
-        How it works
-      </a>
+        <Converter
+          client:load
+          sources={sources}
+          targets={targets}
+          engineMap={engineMap}
+          defaultTo="png"
+        />
+      </div>
     </div>
   </section>
 
-  <!-- CATEGORY CARDS -->
-  <section class="mx-auto max-w-5xl px-6 py-8">
-    <div class="grid gap-4 sm:grid-cols-3">
+  <!-- FLOATING TOOL CARDS -->
+  <section class="mx-auto max-w-5xl px-6 py-14">
+    <p class="text-center text-sm font-medium tracking-wide text-stone">
+      YOUR PRIVATE TOOLKIT
+    </p>
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {
-        categoryCards.map((cat) => (
+        toolCards.map((t, i) => (
           <a
-            href={`/${cat.slug}`}
-            class="group rounded-[var(--radius-xl)] border border-mist bg-paper p-7 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)]"
+            href={t.href}
+            class="tool-card float-in group relative rounded-[1.25rem] border border-mist bg-surface-1 p-6 shadow-[var(--shadow-2)] transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[var(--shadow-3)]"
+            style={`animation-delay: ${240 + i * 90}ms`}
           >
-            <p class="font-display text-xl text-ink transition-colors group-hover:text-accent">
-              {cat.title}
-            </p>
-            <p class="mt-2 text-sm text-stone">{cat.blurb}</p>
+            <div
+              class="float-bob"
+              style={`animation-delay: ${i * 0.5}s; animation-duration: ${5.5 + i * 0.5}s`}
+            >
+              {t.badge && (
+                <span class="absolute top-4 right-4 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold tracking-wider text-canvas">
+                  {t.badge}
+                </span>
+              )}
+              <span class="mb-4 flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] bg-accent-soft text-accent">
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  set:html={toolIcon(t.icon).join("")}
+                />
+              </span>
+              <h3 class="font-display text-lg text-ink transition-colors group-hover:text-accent">
+                {t.title}
+              </h3>
+              <p class="mt-1 text-sm text-stone">{t.blurb}</p>
+            </div>
           </a>
         ))
       }
     </div>
-  </section>
-
-  <!-- FEATURE: AI BACKGROUND REMOVER -->
-  <section class="mx-auto max-w-5xl px-6 py-8">
-    <a
-      href="/background-remover"
-      class="group flex flex-col items-start gap-4 rounded-[var(--radius-xl)] border border-accent/30 bg-accent-soft p-7 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-luxe)] sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div>
-        <span class="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-canvas">
-          NEW · AI
-        </span>
-        <p class="mt-3 font-display text-2xl text-ink">Remove image backgrounds</p>
-        <p class="mt-1 max-w-lg text-stone">
-          Drop a photo, get a clean transparent PNG in seconds. The AI runs on
-          your device — free, unlimited, and nothing is uploaded.
-        </p>
-      </div>
-      <span
-        class="shrink-0 rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition-opacity group-hover:opacity-90"
-      >
-        Try the background remover
-      </span>
-    </a>
   </section>
 
   <!-- POPULAR CONVERSIONS -->
@@ -174,3 +225,37 @@ const jsonLd = [
     </p>
   </section>
 </Layout>
+
+<script>
+  // Cursor-tilt for the floating console.
+  // Desktop + fine-pointer only, and disabled when the user prefers reduced motion.
+  (function () {
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    if (prefersReduced || !finePointer) return;
+
+    const card = document.querySelector<HTMLElement>("[data-tilt]");
+    const scene = card?.closest<HTMLElement>(".tilt-scene");
+    if (!card || !scene) return;
+
+    const MAX_DEG = 5;
+    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
+
+    function onMove(e: MouseEvent) {
+      const r = card!.getBoundingClientRect();
+      const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+      const dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+      card!.style.setProperty("--tilt-ry", `${(clamp(dx) * MAX_DEG).toFixed(2)}deg`);
+      card!.style.setProperty("--tilt-rx", `${(clamp(dy) * -MAX_DEG).toFixed(2)}deg`);
+    }
+    function reset() {
+      card!.style.setProperty("--tilt-ry", "0deg");
+      card!.style.setProperty("--tilt-rx", "0deg");
+    }
+
+    scene.addEventListener("mousemove", onMove);
+    scene.addEventListener("mouseleave", reset);
+  })();
+</script>
