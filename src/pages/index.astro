@@ -93,7 +93,7 @@ const jsonLd = [
 
   <!-- FLOATING CONSOLE -->
   <section class="px-6 pt-6 pb-4">
-    <div class="tilt-scene float-in relative mx-auto max-w-2xl" style="animation-delay: 180ms">
+    <div class="float-in relative mx-auto max-w-2xl" style="animation-delay: 180ms">
       <!-- soft floating aura behind the console -->
       <div
         aria-hidden="true"
@@ -102,8 +102,7 @@ const jsonLd = [
       </div>
 
       <div
-        data-tilt
-        class="tilt-card rounded-[1.5rem] border border-mist bg-surface-1 p-5 shadow-[var(--shadow-3)] sm:p-7"
+        class="console-float rounded-[1.5rem] border border-mist bg-surface-1 p-5 shadow-[var(--shadow-3)] sm:p-7"
       >
         <Converter
           client:load
@@ -130,10 +129,7 @@ const jsonLd = [
             class="tool-card float-in group relative rounded-[1.25rem] border border-mist bg-surface-1 p-6 shadow-[var(--shadow-2)] transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[var(--shadow-3)]"
             style={`animation-delay: ${240 + i * 90}ms`}
           >
-            <div
-              class="float-bob"
-              style={`animation-delay: ${i * 0.5}s; animation-duration: ${5.5 + i * 0.5}s`}
-            >
+            <div>
               {t.badge && (
                 <span class="absolute top-4 right-4 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold tracking-wider text-canvas">
                   {t.badge}
@@ -227,36 +223,3 @@ const jsonLd = [
   </section>
 </Layout>
 
-<script>
-  // Cursor-tilt for the floating console.
-  // Desktop + fine-pointer only, and disabled when the user prefers reduced motion.
-  (function () {
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const finePointer = window.matchMedia("(pointer: fine)").matches;
-    if (prefersReduced || !finePointer) return;
-
-    const card = document.querySelector<HTMLElement>("[data-tilt]");
-    const scene = card?.closest<HTMLElement>(".tilt-scene");
-    if (!card || !scene) return;
-
-    const MAX_DEG = 5;
-    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
-
-    function onMove(e: MouseEvent) {
-      const r = card!.getBoundingClientRect();
-      const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-      const dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-      card!.style.setProperty("--tilt-ry", `${(clamp(dx) * MAX_DEG).toFixed(2)}deg`);
-      card!.style.setProperty("--tilt-rx", `${(clamp(dy) * -MAX_DEG).toFixed(2)}deg`);
-    }
-    function reset() {
-      card!.style.setProperty("--tilt-ry", "0deg");
-      card!.style.setProperty("--tilt-rx", "0deg");
-    }
-
-    scene.addEventListener("mousemove", onMove);
-    scene.addEventListener("mouseleave", reset);
-  })();
-</script>

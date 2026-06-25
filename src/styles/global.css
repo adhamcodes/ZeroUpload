@@ -13,33 +13,33 @@
   (raised cards: result, popover) -> surface-3 (overlays/dropdown menus).
 */
 @theme {
-  /* ---- "Oat & Sage" — ONE soothing matte theme (no light/dark toggle) ---- */
-  --color-canvas: oklch(94% 0.014 83); /* warm creamy oat page base */
-  --color-paper: oklch(96.5% 0.011 83); /* alias of surface-1 */
+  /* ---- "Heritage" — warm parchment, deep forest green & brass (one matte theme) ---- */
+  --color-canvas: #f6f1e7; /* warm parchment page base */
+  --color-paper: #fdfbf6; /* alias of surface-1 */
 
-  --color-surface-1: oklch(96.5% 0.011 83); /* base card — soft cream, lifts off canvas */
-  --color-surface-2: oklch(98% 0.008 83); /* raised card (result, popover) */
-  --color-surface-3: oklch(98.6% 0.006 83); /* overlay / dropdown menu */
-  --color-surface: oklch(96.5% 0.011 83); /* legacy alias */
+  --color-surface-1: #fdfbf6; /* base card — warm near-white, lifts off parchment */
+  --color-surface-2: #fefdf9; /* raised card (result, popover) */
+  --color-surface-3: #ffffff; /* overlay / dropdown menu (highest) */
+  --color-surface: #fdfbf6; /* legacy alias */
 
-  --color-ink: oklch(27% 0.022 60); /* soft espresso primary text (not pure black) */
-  --color-stone: oklch(47% 0.02 62); /* muted secondary text (AA on canvas) */
-  --color-faint: oklch(60% 0.018 62); /* tertiary / hints */
-  --color-mist: oklch(89% 0.013 83); /* warm hairline borders */
-  --color-mist-strong: oklch(82% 0.016 83); /* stronger border on hover/focus */
+  --color-ink: #1a1714; /* warm espresso primary text */
+  --color-stone: #6b655b; /* warm taupe secondary text */
+  --color-faint: #938c7f; /* tertiary / hints */
+  --color-mist: #e6dfd2; /* warm beige hairline borders */
+  --color-mist-strong: #d6ccb8; /* stronger border on hover/focus */
 
-  /* Sage accent — soothing muted eucalyptus green */
-  --color-accent: oklch(46% 0.066 158); /* muted sage green */
-  --color-accent-soft: oklch(92% 0.03 158); /* pale sage tint */
-  --color-accent-ring: oklch(46% 0.066 158 / 0.35);
+  /* Heritage forest-green accent */
+  --color-accent: #1f3d2f; /* deep heritage green */
+  --color-accent-soft: #e8ede4; /* pale warm-green tint */
+  --color-accent-ring: #1f3d2f59; /* ~35% alpha */
 
-  /* Brass accent — RARE warm-gold highlights / numbers only */
-  --color-brass: oklch(60% 0.10 72);
-  --color-brass-soft: oklch(90% 0.032 80);
+  /* Brass — warm-gold highlights / numbers only */
+  --color-brass: #b0894f;
+  --color-brass-soft: #efe7d6;
 
   /* Status */
-  --color-success: oklch(48% 0.09 158);
-  --color-danger: oklch(48% 0.16 27);
+  --color-success: #2e5640;
+  --color-danger: #a63d2b;
 
   /* Typography */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
@@ -103,7 +103,7 @@ body::before {
     var(--color-accent-soft) 0%,
     transparent 55%
   );
-  opacity: 0.7;
+  opacity: 0.45;
 }
 
 /* Grain layer intensity, tuned per theme via a second fixed layer. */
@@ -178,14 +178,7 @@ body::after {
   background-position: 0 0, 0 7px, 7px -7px, -7px 0;
 }
 
-/* ---------- Floating homepage system (user-requested ambient motion) ---------- */
-
-/* Gentle idle float for the tool cards — makes them feel like floating objects. */
-@keyframes float-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-9px); }
-}
-.float-bob { animation: float-bob 6s var(--ease-in-out) infinite; will-change: transform; }
+/* ---------- Floating homepage system ---------- */
 
 /* One-shot entrance — elements rise and settle into place on load. */
 @keyframes float-in {
@@ -194,17 +187,16 @@ body::after {
 }
 .float-in { animation: float-in 0.6s var(--ease-out) both; }
 
-/* Cursor-tilt console: parent provides the 3D perspective, child gets the rotate. */
-.tilt-scene { perspective: 1200px; }
-.tilt-card {
-  transform: rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg));
-  transition: transform 0.3s var(--ease-out);
-  transform-style: preserve-3d;
-  will-change: transform;
+/* The floating console: a gentle, CRISP 2D drift (no 3D tilt — that blurred the
+   text). It pauses the moment you hover or focus inside, so the dropdowns and
+   controls stay rock-steady and sharp. */
+@keyframes console-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
 }
-
-/* Pause a card's idle bob while it's hovered (lifts and holds). */
-.tool-card:hover .float-bob { animation-play-state: paused; }
+.console-float { animation: console-float 7s var(--ease-in-out) infinite; }
+.console-float:hover,
+.console-float:focus-within { animation-play-state: paused; }
 
 /* Glossy shine sweep across a tool card on hover (surprise polish). */
 .tool-card { position: relative; overflow: hidden; }
@@ -257,10 +249,9 @@ body::after {
   .animate-wifi-pulse,
   .animate-console-pop,
   .animate-reveal,
-  .float-bob,
+  .console-float,
   .float-in {
     animation: none !important;
   }
   .tool-card:hover::after { animation: none !important; opacity: 0 !important; }
-  .tilt-card { transition: none !important; transform: none !important; }
 }
