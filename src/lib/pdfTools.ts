@@ -177,3 +177,68 @@ export async function rotatePdf(
     pages: doc.getPageCount(),
   };
 }
+
+
+/**
+ * "Light" PDF compression: render each page to a JPEG (at a quality/scale you
+ * choose) and rebuild the PDF from those images. Real size savings for scanned
+ * or image-heavy PDFs — but the pages become flat images, so the text is no
+ * longer selectable/searchable. We label this clearly in the UI.
+ */
+export async function compressPdf(
+  file: File,
+  opts: { quality: number; scale: number; onProgress?: (r: number) => void },
+): Promise<PdfToolResult> {
+  const lib = await getPdfjs();
+  const { PDFDocument } = await import("pdf-lib");
+  const data = new Uint8Array(await file.arrayBuffer());
+  const task = lib.getDocument({ data });
+  const pdf = await task.promise;
+  const out = await PDFDocument.create();
+  const n = pdf.numPages;
+
+  try {
+    for (let i = 1; i <= n; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: opts.scale });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Could not create a canvas for the PDF page.");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("Page encode failed."))),
+          "image/jpeg",
+          opts.quality,
+        );
+      });
+      const jpg = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+      const p = out.addPage([jpg.width, jpg.height]);
+      p.drawImage(jpg, { x: 0, y: 0, width: jpg.width, height: jpg.height });
+
+      page.cleanup();
+      canvas.width = 0;
+      canvas.height = 0;
+      opts.onProgress?.(i / n);
+    }
+  } finally {
+    await pdf.cleanup().catch(() => {});
+    try {
+      await task.destroy();
+    } catch {
+      /* non-fatal */
+    }
+  }
+
+  const bytes = await out.save();
+  return {
+    blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
+    filename: `${baseName(file.name)}-compressed.pdf`,
+    pages: n,
+  };
+}
