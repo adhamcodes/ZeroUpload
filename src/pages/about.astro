@@ -13,52 +13,57 @@ const description =
     <div class="article-body mt-8 space-y-4 text-stone leading-relaxed">
       <p>
         <strong>ZeroUpload converts your files without ever uploading them.</strong>
+        That's the whole pitch, and the name is a promise I take literally.
       </p>
       <p>
-        Most "free online converters" quietly send your private files — photos,
-        scans, contracts, voice memos — to a company's servers to do the work. We
-        thought that was backwards. Your files are nobody's business but yours.
+        It started with a small thing that annoyed me. I went looking for a free
+        converter, and every site wanted me to upload my file to its servers
+        first. I was about to send a personal document to some company I'd never
+        heard of just to change its format. That's backwards. Your files are
+        nobody's business but yours, and there was no good reason a quick
+        conversion had to involve a stranger's computer.
       </p>
       <p>
-        So we built ZeroUpload on a single, uncompromising rule:
+        So I built this on one rule I won't bend:
         <strong>your files never leave your device.</strong>
       </p>
 
-      <h2 class="font-display text-2xl text-ink">
-        How that's possible: edge computing in your browser
-      </h2>
+      <h2 class="font-display text-2xl text-ink">How it actually works</h2>
       <p>
-        Modern browsers are powerful computers. Using technologies like the
-        Canvas API and WebAssembly (WASM) — the same engines that power
-        professional desktop software — ZeroUpload performs every conversion
-        locally, inside your own browser, on your own processor and memory.
+        Your browser is a lot more capable than people give it credit for. Using
+        the Canvas API and WebAssembly (the same kind of engine that runs desktop
+        software), ZeroUpload does every conversion right there inside your
+        browser, on your own processor and memory.
       </p>
       <p>
-        Your file is read from your device, transformed in memory, and handed
-        straight back to you as a download. It is never transmitted across the
-        internet. There is no upload step, no server queue, and nothing for us to
-        store, see, or leak.
+        Your file gets read off your device, transformed in memory, and handed
+        back to you as a download. It never crosses the network. There's no upload
+        step, no queue, and nothing sitting on a server for me to store, read, or
+        accidentally leak. Even the AI tools, like the background remover and
+        image upscaler, work this way: the model downloads to your browser once,
+        and your image stays put.
       </p>
 
-      <h2 class="font-display text-2xl text-ink">What this means for you</h2>
+      <h2 class="font-display text-2xl text-ink">What that gets you</h2>
       <ul class="list-disc space-y-1 pl-5">
-        <li><strong>100% private.</strong> We can't read your files because we never receive them.</li>
-        <li><strong>Works offline.</strong> Load a page, disconnect your internet, and it still converts — the ultimate proof that nothing is being uploaded.</li>
-        <li><strong>Free and unlimited.</strong> Because the work runs on your device, there are no server costs — so there are no paywalls, no "2 free conversions" walls, and no sign-ups.</li>
-        <li><strong>Fast.</strong> No upload/download round trip. Conversion is instant.</li>
+        <li><strong>Real privacy.</strong> I can't read your files, because I never receive them. There's nothing to read.</li>
+        <li><strong>It works offline.</strong> Load a page, pull your internet, and it still converts. That's the proof, not a marketing line.</li>
+        <li><strong>Free, no sign-up, no limits.</strong> There are no server bills to cover, so there's no paywall, no "2 free conversions then pay", and no account to make.</li>
+        <li><strong>Fast.</strong> Nothing to upload and download again, so it's basically instant.</li>
       </ul>
 
-      <h2 class="font-display text-2xl text-ink">Our promise</h2>
+      <h2 class="font-display text-2xl text-ink">The promise</h2>
       <p>
-        ZeroUpload will never add a feature that uploads your files. The name is
-        the promise. If you ever want to verify our claims, open your browser's
-        Network tab while converting — you'll see zero upload requests — or read
-        our source code.
+        I will never add a feature that uploads your files. If that ever changes,
+        the name stops being true, and that's the line. Don't take my word for it,
+        though: open your browser's Network tab while you convert something and
+        watch for upload requests. You won't find any.
       </p>
 
-      <h2 class="font-display text-2xl text-ink">Get in touch</h2>
+      <h2 class="font-display text-2xl text-ink">Say hi</h2>
       <p>
-        Questions or ideas? Reach us at <strong>support@zeroupload.app</strong>.
+        Got a question, a bug, or an idea for a tool you wish existed? Email me at
+        <strong>support@zeroupload.app</strong>. I read everything.
       </p>
     </div>
   </article>

@@ -2,56 +2,62 @@
 title: "PNG vs JPG vs WebP: Which Image Format Should You Use?"
 description: "A plain-English guide to the three most common image formats — when to use each, and how to convert between them privately in your browser."
 publishDate: 2026-02-03
-excerpt: "PNG, JPG and WebP each win in different situations. Here's the simple decision guide, plus how to convert between them without uploading anything."
+excerpt: "Why does this image look fuzzy? Why is this file 12 MB? Nine times out of ten the answer is the format. Here's how to pick the right one."
 ---
 
-If you have ever wondered why an image looks fuzzy, why a file is enormous, or
-why a website rejected your upload, the answer is almost always the **format**.
-Here is the no-jargon guide to the big three.
+If you've ever wondered why an image came out fuzzy, why a file is somehow 12 MB,
+or why a website flat-out refused your upload, the culprit is almost always the
+format. There are three you'll actually run into. Here's how I think about each
+one.
 
-## JPG — the photo format
+## JPG, the one built for photos
 
-JPG (also spelled JPEG) uses *lossy* compression: it throws away detail your eye
-barely notices to make files small. That trade-off is perfect for photographs.
+JPG (same thing as JPEG) is *lossy*. It quietly throws away detail your eye
+wasn't going to notice anyway, and in exchange the file gets tiny. For
+photographs that's a great deal.
 
-- **Use it for:** photos, web images, anything where small size matters.
-- **Avoid it for:** logos, text, screenshots (compression smears sharp edges).
-- **Gotcha:** it cannot store transparency.
+Where it falls apart is anything with hard edges. Put a logo, a screenshot, or
+text through JPG and you'll see ugly smudge around the sharp lines. It also can't
+do transparency at all. So: great for the holiday photos, wrong for the company
+logo.
 
-## PNG — the graphics format
+## PNG, the one that keeps everything
 
-PNG is *lossless*: it keeps every pixel exactly. It also supports transparency.
-That makes it ideal for anything with crisp edges.
+PNG is *lossless*, meaning every pixel survives exactly as it was. It also handles
+transparency, which is why designers live in it. Logos, icons, screenshots,
+anything that needs crisp edges or a see-through background, this is your format.
 
-- **Use it for:** logos, icons, screenshots, graphics with transparency.
-- **Avoid it for:** large photographs (files get very big).
-- **Gotcha:** no animation, larger files than JPG for photos.
+The catch is size. Ask PNG to store a big photograph and the file balloons,
+because it's faithfully keeping detail JPG would've happily tossed. No animation,
+either.
 
-## WebP — the modern all-rounder
+## WebP, the modern one
 
-WebP is Google's modern format. It compresses 25–35% smaller than JPG or PNG at
-the same quality, supports transparency, and even animation.
+WebP is Google's format, and on paper it wins: roughly 25 to 35% smaller than JPG
+or PNG at the same quality, with transparency and animation thrown in. If you run
+a website and care about load speed, it's a genuinely good idea.
 
-- **Use it for:** fast-loading websites, modern galleries.
-- **Avoid it for:** old desktop software that may not open it.
-- **Gotcha:** some legacy tools still reject it.
+The only real downside is age. Some older desktop programs still squint at WebP
+and refuse to open it, which is exactly when you'll want to convert it back to
+something more universal.
 
-## The quick decision guide
+## If you just want the short answer
 
-| Your goal | Best format |
+| What you're doing | Use |
 |-----------|-------------|
-| A photograph for the web or email | **JPG** |
+| A photo for the web or email | **JPG** |
 | A logo or screenshot with sharp edges | **PNG** |
-| The smallest possible file for a modern site | **WebP** |
-| A transparent background | **PNG** or **WebP** |
+| Smallest possible file on a modern site | **WebP** |
+| Anything needing a transparent background | **PNG** or **WebP** |
 
-## Converting between them — privately
+## Switching between them
 
-Whatever you have, you can switch formats in seconds without uploading anything:
+Whatever you've got, you can swap formats in a couple of seconds, and none of it
+leaves your browser:
 
-- [Convert PNG to JPG](/png-to-jpg) — shrink graphics-turned-photos
-- [Convert WebP to PNG](/webp-to-png) — rescue a WebP an app won't open
-- [Convert JPG to WebP](/jpg-to-webp) — speed up your website
-- [Browse all image conversions](/image-converter)
+- [PNG to JPG](/png-to-jpg) when a graphic's really a photo and the file's too big
+- [WebP to PNG](/webp-to-png) to rescue a WebP some app won't open
+- [JPG to WebP](/jpg-to-webp) to speed up your site
+- [All image conversions](/image-converter)
 
-Every conversion runs on your own device. Your images never leave your browser.
+Every one of these runs on your own device. The images never go anywhere.
