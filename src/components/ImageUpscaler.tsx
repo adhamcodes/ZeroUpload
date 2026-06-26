@@ -302,11 +302,11 @@ export default function ImageUpscaler({ defaultMode = "photo" }: { defaultMode?:
         </div>
 
         <p className={["font-display text-ink", hasItems ? "text-base" : "text-xl"].join(" ")}>
-          {hasItems ? "Drop another image" : "Drop a blurry or low-res image here"}
+          {hasItems ? "Drop another image" : "Drop a small or low-res image here"}
         </p>
         {!hasItems && (
           <p className="mt-1 text-sm text-stone">
-            or click to choose — enhanced {SCALE_FACTOR}× on your device
+            or click to choose — enlarged up to {SCALE_FACTOR}× on your device
           </p>
         )}
       </div>
@@ -414,7 +414,7 @@ function UpscaleCard({ item, index, onRemove }: CardProps) {
                 {item.outW}×{item.outH} PNG
               </span>
               <span className="animate-settle rounded-full bg-accent-soft px-2 py-0.5 font-mono text-xs font-semibold text-accent">
-                {SCALE_FACTOR}× enhanced
+                {SCALE_FACTOR}× larger
               </span>
             </div>
             {item.capped && (
