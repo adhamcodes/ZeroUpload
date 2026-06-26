@@ -37,7 +37,9 @@ const updated = "June 2026";
       <p>
         You can verify this yourself: start a conversion and then disconnect your
         internet — it will still work — or open your browser's developer Network
-        tab and confirm there are no upload requests.
+        tab and confirm there are no upload requests. (The AI-powered tools — the
+        background remover and image upscaler — need a one-time model download
+        first; after that they work offline too. See section 5.)
       </p>
 
       <h2 class="font-display text-2xl text-ink">3. Information we do collect</h2>
@@ -68,6 +70,15 @@ const updated = "June 2026";
         process standard technical request data (such as IP address and user
         agent) to deliver the site and protect against abuse. This is standard web
         infrastructure and does not involve your converted files.
+      </p>
+      <p>
+        <strong>AI-powered tools.</strong> The background remover and the image
+        upscaler run an AI model directly in your browser. The first time you use
+        one, your browser downloads the model file once from a third-party AI
+        model host (Hugging Face's CDN); after that it is cached on your device.
+        Downloading the model involves a normal web request to that host, but
+        <strong>your image is still never uploaded</strong> — only the model
+        comes down to your device, and all processing happens locally.
       </p>
 
       <h2 class="font-display text-2xl text-ink">6. Children's privacy</h2>
