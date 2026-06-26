@@ -1,0 +1,141 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Install ZeroUpload — Add the App to Your Device | ZeroUpload";
+const description =
+  "Install ZeroUpload as an app on your phone or computer. One tap on Chrome, Edge & Android; simple steps for iPhone. Free, private, works great offline-style.";
+
+const guides = [
+  {
+    name: "Chrome / Edge (desktop)",
+    steps: [
+      "Click the Install button above, or",
+      "Click the install icon (⊕ / monitor) at the right of the address bar,",
+      "Choose Install.",
+    ],
+  },
+  {
+    name: "Android (Chrome)",
+    steps: ["Tap the Install button above, or", "Open the ⋮ menu → Add to Home screen / Install app."],
+  },
+  {
+    name: "iPhone / iPad (Safari)",
+    steps: ["Tap the Share button (the square with an arrow),", "Scroll down → Add to Home Screen,", "Tap Add."],
+  },
+  {
+    name: "Firefox",
+    steps: [
+      "Firefox desktop doesn't support installing web apps — that's a Firefox limitation, not ours.",
+      "Use Chrome or Edge to install, or just bookmark ZeroUpload.",
+      "Firefox on Android: open the ⋮ menu → Install.",
+    ],
+  },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "ZeroUpload",
+    url: new URL("/install", Astro.site).href,
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Any (web browser)",
+    description,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <section class="mx-auto max-w-2xl px-6 pt-16 pb-8 text-center">
+    <span class="inline-flex items-center gap-2 rounded-full border border-mist bg-surface-1 px-4 py-1.5 text-xs font-medium text-stone">
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      Free · private · installs in one tap
+    </span>
+    <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl">
+      Install ZeroUpload as an app.
+    </h1>
+    <p class="mx-auto mt-4 max-w-lg text-lg text-stone">
+      Get a one-tap icon on your home screen or desktop. Full-screen, no browser
+      bar — and still 100% private, nothing uploaded.
+    </p>
+
+    <div class="mt-8">
+      <button
+        id="pwa-install-btn"
+        type="button"
+        class="rounded-full bg-accent px-7 py-3 text-sm font-semibold text-canvas transition-opacity hover:opacity-90"
+      >
+        Install app
+      </button>
+      <p id="pwa-install-status" class="mt-3 text-sm text-stone"></p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-4xl px-6 pb-16">
+    <h2 class="font-display text-2xl">Step-by-step, per browser</h2>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+      {
+        guides.map((g) => (
+          <div class="rounded-[var(--radius-lg)] border border-mist bg-surface-1 p-5">
+            <p class="font-display text-lg text-ink">{g.name}</p>
+            <ol class="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-stone">
+              {g.steps.map((s) => (
+                <li>{s}</li>
+              ))}
+            </ol>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</Layout>
+
+<script is:inline>
+  (function () {
+    var deferred = null;
+    var btn = document.getElementById("pwa-install-btn");
+    var status = document.getElementById("pwa-install-status");
+
+    function isStandalone() {
+      return (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true
+      );
+    }
+
+    if (isStandalone()) {
+      if (btn) btn.style.display = "none";
+      if (status) status.textContent = "✓ ZeroUpload is already installed on this device.";
+      return;
+    }
+
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferred = e;
+      if (status) status.textContent = "Ready to install — tap the button.";
+    });
+
+    window.addEventListener("appinstalled", function () {
+      deferred = null;
+      if (status) status.textContent = "🎉 Installed! Look for the ZeroUpload icon on your device.";
+      if (btn) btn.style.display = "none";
+    });
+
+    if (btn) {
+      btn.addEventListener("click", async function () {
+        if (deferred) {
+          deferred.prompt();
+          try { await deferred.userChoice; } catch (e) {}
+          deferred = null;
+        } else {
+          if (status)
+            status.textContent =
+              "Your browser doesn't offer one-tap install — follow the steps for your browser below.";
+          var g = document.querySelector("h2");
+          if (g) g.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    }
+  })();
+</script>
