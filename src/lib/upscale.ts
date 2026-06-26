@@ -160,11 +160,31 @@ async function getUpscaler(
       }
     };
 
-    return await pipeline("image-to-image", MODELS[mode].id, {
-      device: "wasm",
-      dtype: "fp32",
-      progress_callback,
-    });
+    const hasWebGPU = typeof navigator !== "undefined" && !!(navigator as any).gpu;
+    // Try WebGPU first — it runs on the GPU, so it's far faster and doesn't lock
+    // up the page the way heavy WASM inference on the main thread does. Fall back
+    // to WASM if WebGPU isn't available or fails to initialise.
+    const attempts: Array<{ device: string; dtype: string }> = hasWebGPU
+      ? [
+          { device: "webgpu", dtype: "fp32" },
+          { device: "wasm", dtype: "fp32" },
+        ]
+      : [{ device: "wasm", dtype: "fp32" }];
+
+    let lastInitErr: any = null;
+    for (const a of attempts) {
+      try {
+        return await pipeline("image-to-image", MODELS[mode].id, {
+          device: a.device,
+          dtype: a.dtype,
+          progress_callback,
+        });
+      } catch (e) {
+        lastInitErr = e;
+        console.warn(`[ZeroUpload] upscaler init failed on ${a.device}; trying next backend`, e);
+      }
+    }
+    throw lastInitErr ?? new Error("No usable backend.");
   })();
 
   pipePromises[mode] = promise;

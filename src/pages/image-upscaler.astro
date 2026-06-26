@@ -4,53 +4,53 @@ import ImageUpscaler from "../components/ImageUpscaler.tsx";
 import { UPSCALE_VARIANTS } from "../data/upscaleVariants";
 
 const title =
-  "Free AI Image Upscaler — Unblur & Enhance Images 4× In Your Browser | ZeroUpload";
+  "Free Image Upscaler (Beta) — Enlarge Images up to 4× In Your Browser | ZeroUpload";
 const description =
-  "Upscale, unblur and enhance images 4× with AI — 100% in your browser. Free, unlimited, no signup, no upload, no watermark. Your image never leaves your device.";
+  "Enlarge and sharpen images up to 4× — 100% in your browser. Free, unlimited, no signup, no upload, no watermark. Your image never leaves your device.";
 
 const steps = [
   {
     t: "Drop your image",
-    d: "Drag in a small, soft or low-res JPG, PNG or WEBP — or click to choose. It stays on your device.",
+    d: "Drag in a small or soft JPG, PNG or WEBP — or click to choose. It stays on your device.",
   },
   {
-    t: "AI enhances it 4×",
-    d: "An on-device AI model reconstructs edges and detail while enlarging the image four times over.",
+    t: "It enlarges up to 4×",
+    d: "An on-device model enlarges the image up to four times over and sharpens its edges.",
   },
   {
     t: "Drag to compare & download",
-    d: "Reveal the before/after with the slider, then save a sharp 4× PNG.",
+    d: "Reveal the before/after with the slider, then save the larger PNG.",
   },
 ];
 
 const faqs = [
   {
-    q: "Is this AI image upscaler really free?",
+    q: "Is this image upscaler really free?",
     a: "Yes — completely free with no signup, no watermark and no per-image limit. There is no server doing the work, so there is nothing to meter or charge for.",
   },
   {
     q: "Are my images uploaded anywhere?",
-    a: "No. The enhancing happens entirely inside your browser using an on-device AI model. Your image never leaves your device. The only thing downloaded is the small AI model itself, the first time you use the tool.",
+    a: "No. The work happens entirely inside your browser using an on-device model. Your image never leaves your device. The only thing downloaded is the model itself, the first time you use the tool.",
   },
   {
-    q: "How much does it enlarge the image?",
-    a: "By 4× — width and height each grow four times (16× the total pixels). Very large images are scaled to fit first so the tool stays fast and won't crash.",
+    q: "Will it 'restore' an old photo or fix a blurry face?",
+    a: "Honestly, no — and we won't pretend otherwise. The viral 'restore a face' tools run heavy AI on GPU servers, which means uploading your photo. We refuse to do that. This tool enlarges and sharpens what is already in the image; it cannot invent eyes, noses or detail that were never captured. That's why it's labelled Beta.",
+  },
+  {
+    q: "What does it actually do well?",
+    a: "Enlarging small, fairly clean images so they stay sharp instead of blocky — logos, icons, product shots, screenshots, web-sized pictures, and clean photos. For anime, illustrations and line art, switch on Anime & Art mode, where it genuinely shines.",
   },
   {
     q: "What's the difference between Photo and Anime mode?",
-    a: "Photo mode uses a model trained on real photographs, so it sharpens faces and detail faithfully without changing how people look. Anime & Art mode uses a model trained on drawings, which makes line art and illustrations crisp and vivid — but it will stylise a real photo and make faces look cartoonish, so only use it for art. Photo is the default.",
+    a: "Photo mode uses a model trained on real photographs — it sharpens faithfully without restyling faces. Anime & Art mode uses a model trained on drawings, which keeps line art crisp and vivid, but it will make a real photo look cartoonish. Photo is the default; use Anime only for art and graphics.",
   },
   {
-    q: "What kind of images work best?",
-    a: "Small, soft, low-resolution or compressed images improve the most — including old scanned photos, screenshots and web-sized pictures (Photo mode), or anime and illustrations (Anime mode). It cannot invent detail that was never captured, so heavy blur or destroyed photos have real limits. We would rather be honest than overpromise.",
+    q: "How much does it enlarge the image?",
+    a: "Up to 4× — width and height each grow up to four times (about 16× the pixels). Large images are scaled to fit first so the tool stays fast and won't crash your tab.",
   },
   {
-    q: "Why is the first use slower?",
-    a: "The first time, your browser downloads a one-time AI model (around 7 MB). After that it is cached, so later images skip the download — and it even works offline.",
-  },
-  {
-    q: "Does it work on phones?",
-    a: "It can, but enhancing is heavy work. A recent desktop browser is fastest. On older phones, large images may be slow, so the input size is automatically capped to avoid running out of memory.",
+    q: "Why is it slow, and does it work on phones?",
+    a: "It's real AI doing real work on your device. Where your browser supports WebGPU it uses your graphics card and is much faster; otherwise it falls back to a slower CPU path. A recent desktop browser is best. On phones and low-memory devices the input is capped automatically to avoid freezing or running out of memory.",
   },
 ];
 
@@ -58,7 +58,7 @@ const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "ZeroUpload AI Image Upscaler",
+    name: "ZeroUpload Image Upscaler (Beta)",
     url: new URL("/image-upscaler", Astro.site).href,
     applicationCategory: "MultimediaApplication",
     operatingSystem: "Any (web browser)",
@@ -84,16 +84,17 @@ const jsonLd = [
       class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
     >
       <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
-      AI runs on your device · nothing is ever uploaded
+      Runs on your device · nothing is ever uploaded · Beta
     </span>
 
     <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl">
-      Upscale &amp; unblur images<br /> without uploading a thing.
+      Enlarge images up to 4×<br /> without uploading a thing.
     </h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
-      Drop a small or blurry image and AI enlarges it 4× while rebuilding detail —
-      free, unlimited, no signup. The model runs entirely inside your browser, so
-      your image never leaves your device.
+      Drop a small image and it's enlarged up to 4× with sharper edges — free,
+      unlimited, no signup. It runs entirely inside your browser, so your image
+      never leaves your device. Best for graphics, screenshots and clean photos;
+      it sharpens what's there, it doesn't magically restore detail.
     </p>
   </section>
 
