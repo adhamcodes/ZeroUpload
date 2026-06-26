@@ -242,3 +242,80 @@ export async function compressPdf(
     pages: n,
   };
 }
+
+
+
+/**
+ * Render small thumbnails for every page of a PDF (for the reorder UI).
+ * Returns a data URL per page, in page order. Runs on-device via pdf.js.
+ */
+export async function renderPdfThumbnails(
+  file: File,
+  opts: { scale?: number; onProgress?: (r: number) => void } = {},
+): Promise<string[]> {
+  const scale = opts.scale ?? 0.35;
+  const lib = await getPdfjs();
+  const data = new Uint8Array(await file.arrayBuffer());
+  const task = lib.getDocument({ data });
+  const pdf = await task.promise;
+  const n = pdf.numPages;
+  const thumbs: string[] = [];
+
+  try {
+    for (let i = 1; i <= n; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Could not create a canvas for the PDF page.");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+      thumbs.push(canvas.toDataURL("image/jpeg", 0.7));
+      page.cleanup();
+      canvas.width = 0;
+      canvas.height = 0;
+      opts.onProgress?.(i / n);
+    }
+  } finally {
+    await pdf.cleanup().catch(() => {});
+    try {
+      await task.destroy();
+    } catch {
+      /* non-fatal */
+    }
+  }
+  return thumbs;
+}
+
+/**
+ * Rebuild a PDF using the given page order (0-based indices). Pages omitted
+ * from `order` are dropped, so this powers both reordering and deleting.
+ * Lossless — pages are copied, never re-compressed.
+ */
+export async function reorderPdf(
+  file: File,
+  order: number[],
+): Promise<PdfToolResult> {
+  if (order.length === 0) {
+    throw new Error("Keep at least one page.");
+  }
+  const { PDFDocument } = await import("pdf-lib");
+  const src = await PDFDocument.load(await file.arrayBuffer());
+  const total = src.getPageCount();
+  const safe = order.filter((i) => Number.isInteger(i) && i >= 0 && i < total);
+  if (safe.length === 0) throw new Error("No valid pages to keep.");
+
+  const out = await PDFDocument.create();
+  const copied = await out.copyPages(src, safe);
+  copied.forEach((p) => out.addPage(p));
+
+  const bytes = await out.save();
+  return {
+    blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
+    filename: `${baseName(file.name)}-reordered.pdf`,
+    pages: out.getPageCount(),
+  };
+}

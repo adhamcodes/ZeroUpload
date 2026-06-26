@@ -1,0 +1,44 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PdfReorder from "../components/PdfReorder.tsx";
+
+const title = "Reorder & Delete PDF Pages — Free, In Your Browser | ZeroUpload";
+const description =
+  "Rearrange or delete pages in a PDF — 100% in your browser. Free, unlimited, no upload, no signup. Lossless. Your PDF never leaves your device.";
+
+const faqs = [
+  { q: "Is organizing a PDF free?", a: "Completely — no signup, no watermark, no limit. There is no server, so there is nothing to charge for." },
+  { q: "Is my PDF uploaded?", a: "No. Everything — the page previews and the rebuild — happens in your browser. Your PDF never leaves your device." },
+  { q: "Does deleting or reordering lose quality?", a: "No — it is lossless. Pages are copied as-is and simply rearranged; nothing is re-compressed." },
+  { q: "Can I delete multiple pages?", a: "Yes. Remove as many pages as you like with the ✕ button, reorder the rest with the arrows, then download the result." },
+];
+
+const jsonLd = [
+  { "@context": "https://schema.org", "@type": "WebApplication", name: "ZeroUpload PDF Organizer", url: new URL("/organize-pdf", Astro.site).href, applicationCategory: "UtilitiesApplication", operatingSystem: "Any (web browser)", description, offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } },
+  { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-6 text-center">
+    <span class="inline-flex items-center gap-2 rounded-full border border-mist bg-surface-1 px-4 py-1.5 text-xs font-medium text-stone">
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      100% private · nothing is ever uploaded
+    </span>
+    <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl">Reorder &amp; delete PDF pages<br /> without uploading a thing.</h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">See every page, drop the ones you don't need, and rearrange the rest — entirely in your browser. Free, unlimited, lossless.</p>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 py-6">
+    <div class="rounded-[1.5rem] border border-mist bg-surface-1 p-5 shadow-[var(--shadow-3)] sm:p-7">
+      <PdfReorder client:load />
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 py-12">
+    <h2 class="font-display text-3xl">Frequently asked questions</h2>
+    <div class="mt-8 divide-y divide-mist/70">
+      {faqs.map((f) => (<div class="py-5"><h3 class="font-display text-lg text-ink">{f.q}</h3><p class="mt-2 text-stone">{f.a}</p></div>))}
+    </div>
+  </section>
+</Layout>
