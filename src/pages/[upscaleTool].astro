@@ -1,0 +1,153 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ImageUpscaler from "../components/ImageUpscaler.tsx";
+import { UPSCALE_VARIANTS } from "../data/upscaleVariants";
+
+export function getStaticPaths() {
+  return UPSCALE_VARIANTS.map((v) => ({
+    params: { upscaleTool: v.slug },
+    props: { variant: v },
+  }));
+}
+
+const { variant } = Astro.props;
+const others = UPSCALE_VARIANTS.filter((v) => v.slug !== variant.slug).slice(0, 6);
+
+const faqs = [
+  {
+    q: `Is ${variant.label.toLowerCase()} free?`,
+    a: "Yes — free, unlimited, with no signup and no watermark. There is no server doing the work, so there is nothing to charge for.",
+  },
+  {
+    q: "Is my image uploaded?",
+    a: "No. Everything runs inside your browser with an on-device AI model. Your image never leaves your device. Only the small AI model is downloaded the first time you use the tool.",
+  },
+  {
+    q: "How much can it really improve an image?",
+    a: "It enlarges 4× and reconstructs realistic edges and texture, so it shines on small, soft or compressed images. It cannot invent detail that was never captured — heavy blur, tiny faces or destroyed photos have limits. We would rather tell you that than overpromise.",
+  },
+  {
+    q: "What do I get back?",
+    a: "A PNG that is 4× larger than the version processed (width and height each ×4). Large inputs are scaled to fit first to keep the tool fast and stable.",
+  },
+  {
+    q: "Does it work on phones?",
+    a: "It can, but enhancing is heavy work. A recent desktop browser is fastest; on older phones large images may be slow, so we automatically cap the input size to avoid crashes.",
+  },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: variant.h1,
+    url: new URL(`/${variant.slug}`, Astro.site).href,
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Any (web browser)",
+    description: variant.description,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+];
+---
+
+<Layout title={variant.title} description={variant.description} jsonLd={jsonLd}>
+  <!-- Hero -->
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-6 text-center">
+    <span
+      class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      AI runs on your device · nothing is ever uploaded
+    </span>
+
+    <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl">
+      {variant.h1}
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">{variant.intro}</p>
+  </section>
+
+  <!-- The tool -->
+  <section class="mx-auto max-w-2xl px-6 py-6">
+    <ImageUpscaler client:only="react" />
+  </section>
+
+  <!-- Tips -->
+  <section class="mx-auto max-w-3xl px-6 py-12">
+    <h2 class="font-display text-2xl">Tips for the best result</h2>
+    <ul class="mt-6 space-y-4">
+      {
+        variant.tips.map((tip) => (
+          <li class="flex gap-3">
+            <span class="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </span>
+            <span class="text-stone">{tip}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-3xl px-6 py-8">
+    <h2 class="font-display text-2xl">FAQ</h2>
+    <div class="mt-6 divide-y divide-mist/70">
+      {
+        faqs.map((f) => (
+          <div class="py-5">
+            <h3 class="font-display text-lg text-ink">{f.q}</h3>
+            <p class="mt-2 text-stone">{f.a}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Related -->
+  <section class="mx-auto max-w-5xl px-6 py-12">
+    <h2 class="font-display text-2xl">More ways to enhance images</h2>
+    <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <a
+        href="/image-upscaler"
+        class="group rounded-[var(--radius-lg)] border border-mist bg-paper px-5 py-4 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-1)]"
+      >
+        <span class="text-ink transition-colors group-hover:text-accent">
+          AI Image Upscaler (any image)
+        </span>
+      </a>
+      {
+        others.map((v) => (
+          <a
+            href={`/${v.slug}`}
+            class="group rounded-[var(--radius-lg)] border border-mist bg-paper px-5 py-4 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-1)]"
+          >
+            <span class="text-ink transition-colors group-hover:text-accent">
+              {v.label}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,164 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ImageUpscaler from "../components/ImageUpscaler.tsx";
+import { UPSCALE_VARIANTS } from "../data/upscaleVariants";
+
+const title =
+  "Free AI Image Upscaler — Unblur & Enhance Images 4× In Your Browser | ZeroUpload";
+const description =
+  "Upscale, unblur and enhance images 4× with AI — 100% in your browser. Free, unlimited, no signup, no upload, no watermark. Your image never leaves your device.";
+
+const steps = [
+  {
+    t: "Drop your image",
+    d: "Drag in a small, soft or low-res JPG, PNG or WEBP — or click to choose. It stays on your device.",
+  },
+  {
+    t: "AI enhances it 4×",
+    d: "An on-device AI model reconstructs edges and detail while enlarging the image four times over.",
+  },
+  {
+    t: "Drag to compare & download",
+    d: "Reveal the before/after with the slider, then save a sharp 4× PNG.",
+  },
+];
+
+const faqs = [
+  {
+    q: "Is this AI image upscaler really free?",
+    a: "Yes — completely free with no signup, no watermark and no per-image limit. There is no server doing the work, so there is nothing to meter or charge for.",
+  },
+  {
+    q: "Are my images uploaded anywhere?",
+    a: "No. The enhancing happens entirely inside your browser using an on-device AI model. Your image never leaves your device. The only thing downloaded is the small AI model itself, the first time you use the tool.",
+  },
+  {
+    q: "How much does it enlarge the image?",
+    a: "By 4× — width and height each grow four times (16× the total pixels). Very large images are scaled to fit first so the tool stays fast and won't crash.",
+  },
+  {
+    q: "What kind of images work best?",
+    a: "Small, soft, low-resolution or compressed images improve the most — including old scanned photos, anime and illustrations, screenshots and web-sized pictures. It cannot invent detail that was never captured, so heavy blur or destroyed photos have real limits. We would rather be honest than overpromise.",
+  },
+  {
+    q: "Why is the first use slower?",
+    a: "The first time, your browser downloads a one-time AI model (around 7 MB). After that it is cached, so later images skip the download — and it even works offline.",
+  },
+  {
+    q: "Does it work on phones?",
+    a: "It can, but enhancing is heavy work. A recent desktop browser is fastest. On older phones, large images may be slow, so the input size is automatically capped to avoid running out of memory.",
+  },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "ZeroUpload AI Image Upscaler",
+    url: new URL("/image-upscaler", Astro.site).href,
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Any (web browser)",
+    description,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+];
+---
+
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <!-- Hero -->
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-6 text-center">
+    <span
+      class="inline-flex items-center gap-2 rounded-full border border-mist bg-paper px-4 py-1.5 text-xs font-medium text-stone"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+      AI runs on your device · nothing is ever uploaded
+    </span>
+
+    <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl">
+      Upscale &amp; unblur images<br /> without uploading a thing.
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Drop a small or blurry image and AI enlarges it 4× while rebuilding detail —
+      free, unlimited, no signup. The model runs entirely inside your browser, so
+      your image never leaves your device.
+    </p>
+  </section>
+
+  <!-- The tool -->
+  <section class="mx-auto max-w-2xl px-6 py-6">
+    <ImageUpscaler client:only="react" />
+  </section>
+
+  <!-- How it works -->
+  <section class="mx-auto max-w-5xl px-6 py-12">
+    <h2 class="font-display text-3xl">How it works</h2>
+    <div class="mt-10 grid gap-8 sm:grid-cols-3">
+      {
+        steps.map((s, i) => (
+          <div>
+            <div class="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft font-display text-accent">
+              {i + 1}
+            </div>
+            <h3 class="mt-4 font-display text-xl">{s.t}</h3>
+            <p class="mt-2 text-stone">{s.d}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Privacy statement -->
+  <section class="mx-auto max-w-3xl px-6 py-12 text-center">
+    <h2 class="font-display text-3xl">Your photos are nobody's business.</h2>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-stone">
+      Other upscalers upload your private photos to their servers and charge you
+      per image or lock results behind a subscription. ZeroUpload does the
+      opposite: the AI model comes to your browser, your photo stays put, and
+      there is no limit because there is no server.
+    </p>
+  </section>
+
+  <!-- Use cases / programmatic SEO links -->
+  <section class="mx-auto max-w-5xl px-6 py-12">
+    <h2 class="font-display text-2xl">One tool, every kind of image</h2>
+    <p class="mt-1 text-stone">Tuned copy and tips for the most common needs.</p>
+    <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        UPSCALE_VARIANTS.map((v) => (
+          <a
+            href={`/${v.slug}`}
+            class="group rounded-[var(--radius-lg)] border border-mist bg-paper px-5 py-4 transition-all hover:border-accent/60 hover:shadow-[var(--shadow-1)]"
+          >
+            <span class="text-ink transition-colors group-hover:text-accent">
+              {v.label}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-3xl px-6 py-12">
+    <h2 class="font-display text-3xl">Frequently asked questions</h2>
+    <div class="mt-8 divide-y divide-mist/70">
+      {
+        faqs.map((f) => (
+          <div class="py-5">
+            <h3 class="font-display text-lg text-ink">{f.q}</h3>
+            <p class="mt-2 text-stone">{f.a}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</Layout>
