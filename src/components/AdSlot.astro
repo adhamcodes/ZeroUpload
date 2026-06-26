@@ -1,0 +1,30 @@
+---
+import { SITE } from "../lib/siteConfig";
+
+interface Props {
+  /** AdSense ad-unit slot id (optional; auto ads work without it) */
+  slot?: string;
+}
+const { slot } = Astro.props;
+const client = SITE.adsensePublisherId?.trim();
+---
+{
+  client && (
+    <div class="mx-auto my-10 w-full max-w-3xl px-6">
+      <p class="mb-1 text-center text-[10px] uppercase tracking-wider text-faint">
+        Advertisement
+      </p>
+      <ins
+        class="adsbygoogle block"
+        style="display:block"
+        data-ad-client={client}
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+      <script is:inline>
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+  )
+}

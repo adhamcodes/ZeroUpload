@@ -1,0 +1,14 @@
+---
+import { SITE } from "../lib/siteConfig";
+const token = SITE.cloudflareAnalyticsToken?.trim();
+---
+{
+  token && (
+    <script
+      is:inline
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon={`{"token": "${token}"}`}
+    />
+  )
+}

@@ -179,7 +179,7 @@ const jsonLd = [
     <p class="mt-1 text-stone">Pick a suite — every tool runs on your device.</p>
     <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {
-        toolCards.map((t, i) => (
+        toolCards.map((t) => (
           <a
             href={t.href}
             class="tool-card group relative rounded-[1.25rem] border border-mist bg-surface-1 p-6 shadow-[var(--shadow-2)] transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[var(--shadow-3)]"
