@@ -11,6 +11,7 @@ import {
   upscaleSupported,
   SCALE_FACTOR,
   type UpscaleProgress,
+  type UpscaleMode,
 } from "../lib/upscale";
 import CompareSlider from "./CompareSlider";
 
@@ -42,8 +43,9 @@ function prettyBytes(n: number): string {
 
 let seq = 0;
 
-export default function ImageUpscaler() {
+export default function ImageUpscaler({ defaultMode = "photo" }: { defaultMode?: UpscaleMode }) {
   const [items, setItems] = useState<Item[]>([]);
+  const [mode, setMode] = useState<UpscaleMode>(defaultMode);
   const [dragging, setDragging] = useState(false);
   const [justDropped, setJustDropped] = useState(false);
   const [error, setError] = useState("");
@@ -54,8 +56,10 @@ export default function ImageUpscaler() {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<Item[]>([]);
+  const modeRef = useRef<UpscaleMode>(defaultMode);
   const processingRef = useRef(false);
   itemsRef.current = items;
+  modeRef.current = mode;
 
   useEffect(() => {
     setSupported(upscaleSupported());
@@ -75,9 +79,12 @@ export default function ImageUpscaler() {
         if (!next) break;
         patch(next.id, { status: "working" });
         try {
-          const res = await upscaleImage(next.file, (p) => {
-            if (p.stage === "download" || p.stage === "warm" || p.stage === "retry") setPhase(p);
-            else setPhase(null);
+          const res = await upscaleImage(next.file, {
+            mode: modeRef.current,
+            onProgress: (p) => {
+              if (p.stage === "download" || p.stage === "warm" || p.stage === "retry") setPhase(p);
+              else setPhase(null);
+            },
           });
           setModelReady(true);
           setPhase(null);
@@ -197,6 +204,46 @@ export default function ImageUpscaler() {
 
   return (
     <div className="w-full">
+      <div
+        role="radiogroup"
+        aria-label="Enhancement mode"
+        className="mb-4 flex rounded-[var(--radius-lg)] border border-mist bg-surface-2 p-1"
+      >
+        <button
+          role="radio"
+          aria-checked={mode === "photo"}
+          onClick={() => setMode("photo")}
+          className={[
+            "flex-1 rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors",
+            mode === "photo" ? "bg-accent text-canvas" : "text-stone hover:text-ink",
+          ].join(" ")}
+        >
+          Photo
+          <span className={["ml-1 hidden text-xs font-normal sm:inline", mode === "photo" ? "text-canvas/80" : "text-faint"].join(" ")}>
+            · real photos
+          </span>
+        </button>
+        <button
+          role="radio"
+          aria-checked={mode === "anime"}
+          onClick={() => setMode("anime")}
+          className={[
+            "flex-1 rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors",
+            mode === "anime" ? "bg-accent text-canvas" : "text-stone hover:text-ink",
+          ].join(" ")}
+        >
+          Anime &amp; Art
+          <span className={["ml-1 hidden text-xs font-normal sm:inline", mode === "anime" ? "text-canvas/80" : "text-faint"].join(" ")}>
+            · drawings
+          </span>
+        </button>
+      </div>
+      <p className="mb-4 text-center text-xs text-stone">
+        {mode === "photo"
+          ? "Best for real photos, old family photos and selfies — sharpens faithfully without changing faces."
+          : "Best for anime, illustrations and line art — crisp and stylised. On real photos it will look cartoonish."}
+      </p>
+
       <div
         role="button"
         tabIndex={0}

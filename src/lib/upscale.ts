@@ -3,13 +3,18 @@
  *
  * Library: @huggingface/transformers (Apache-2.0) — the same engine that powers
  *          the background remover, so we reuse a proven loading path.
- * Model:   Xenova/4x_APISR_GRL_GAN_generator-onnx — a GAN-based 4x super-
- *          resolution + restoration model (~6.5 MB ONNX). It deblurs, removes
- *          JPEG artifacts, and reconstructs detail. Best on small/low-res or
- *          slightly blurry images; it is NOT magic on heavily destroyed photos.
  *
- * MEMORY: this is a transformer model, so its working memory grows fast with
- * input size — a large input upscaled 4x can exhaust the browser's WASM heap
+ * TWO MODES, because one model can't do both well:
+ *   - "photo"  → Xenova/swin2SR-compressed-sr-x4-48. A realistic 4x super-
+ *                resolution + restoration model. Cleans compression artifacts
+ *                and sharpens REAL photos faithfully (no cartoon look). This is
+ *                the default — it's what people want for old photos and selfies.
+ *   - "anime"  → Xenova/4x_APISR_GRL_GAN_generator-onnx. A GAN model trained for
+ *                anime / illustrations / line art. Dramatic and crisp on drawn
+ *                art, but it stylises real faces, so it is NOT the default.
+ *
+ * MEMORY: these are transformer models, so working memory grows fast with input
+ * size — a large input upscaled 4x can exhaust the browser's WASM heap
  * (std::bad_alloc). We therefore (a) start from a conservative input size, and
  * (b) if a run runs out of memory, automatically retry at a smaller size until
  * it succeeds. The result may be smaller on a low-memory device, but it will
@@ -17,12 +22,14 @@
  *
  * THE PROMISE IS INTACT: the user's image NEVER leaves the device. Only the
  * model weights are fetched once from the Hugging Face CDN (then browser-cached).
- * Inference runs entirely on-device on the WASM backend, which works on every
- * modern browser (including Firefox). The model is served from the CDN at
- * runtime and is never bundled or redistributed by ZeroUpload.
+ * Inference runs entirely on-device on the WASM backend (works in every modern
+ * browser, including Firefox). The models are served from the CDN at runtime and
+ * are never bundled or redistributed by ZeroUpload.
  *
  * Self-contained engine — it does not touch convert.ts or any existing engine.
  */
+
+export type UpscaleMode = "photo" | "anime";
 
 export interface UpscaleProgress {
   stage: "download" | "warm" | "prepare" | "infer" | "retry" | "compose";
@@ -42,37 +49,46 @@ export interface UpscaleResult {
   inputWasCapped: boolean;
 }
 
-/** The model upscales by a fixed factor of 4x. */
+/** The models upscale by a fixed factor of 4x. */
 export const SCALE_FACTOR = 4;
 
-const MODEL_ID = "Xenova/4x_APISR_GRL_GAN_generator-onnx";
-
-/**
- * Starting input cap (longest edge, in pixels). The model output is 4x this,
- * so 512 in -> 2048 out. These are intentionally conservative: a transformer
- * SR model needs a lot of scratch memory, and overshooting throws bad_alloc.
- * We step down from here automatically if a run runs out of memory.
- */
-function startingCap(): number {
-  try {
-    // navigator.deviceMemory is in GB (Chromium-only); absent elsewhere.
-    const mem = (navigator as any)?.deviceMemory;
-    if (typeof mem === "number" && mem > 0 && mem <= 4) return 320;
-  } catch {
-    /* ignore */
-  }
-  return 512;
+interface ModelSpec {
+  id: string;
+  /** Starting input cap (longest edge) on a normal device, and low-memory one. */
+  capDesktop: number;
+  capLowMem: number;
 }
 
+const MODELS: Record<UpscaleMode, ModelSpec> = {
+  // Realistic photo restoration. Swin2SR is heavier per pixel, so smaller caps.
+  photo: { id: "Xenova/swin2SR-compressed-sr-x4-48", capDesktop: 384, capLowMem: 256 },
+  // Anime / art. APISR is lighter, so it can take a larger starting input.
+  anime: { id: "Xenova/4x_APISR_GRL_GAN_generator-onnx", capDesktop: 512, capLowMem: 320 },
+};
+
 /** Smallest input edge we will fall back to before giving up. */
-const MIN_EDGE = 160;
+const MIN_EDGE = 128;
+
+function isLowMemoryDevice(): boolean {
+  try {
+    const mem = (navigator as any)?.deviceMemory;
+    return typeof mem === "number" && mem > 0 && mem <= 4;
+  } catch {
+    return false;
+  }
+}
+
+function startingCap(mode: UpscaleMode): number {
+  const spec = MODELS[mode];
+  return isLowMemoryDevice() ? spec.capLowMem : spec.capDesktop;
+}
 
 /**
  * Build a descending list of input edge sizes to attempt, starting at the
  * smaller of the device cap and the image's own longest edge.
  */
-function candidateEdges(longest: number): number[] {
-  const start = Math.min(startingCap(), Math.max(MIN_EDGE, Math.round(longest)));
+function candidateEdges(mode: UpscaleMode, longest: number): number[] {
+  const start = Math.min(startingCap(mode), Math.max(MIN_EDGE, Math.round(longest)));
   const edges: number[] = [];
   let e = start;
   while (e >= MIN_EDGE) {
@@ -86,7 +102,7 @@ function candidateEdges(longest: number): number[] {
 
 const MAX_FILE_BYTES = 30 * 1024 * 1024;
 
-let pipePromise: Promise<any> | null = null;
+const pipePromises: Partial<Record<UpscaleMode, Promise<any>>> = {};
 
 function describe(err: any): string {
   if (err == null) return "unknown error";
@@ -109,15 +125,18 @@ function isMemoryError(err: any): boolean {
     s.includes("out of memory") ||
     s.includes("oom") ||
     s.includes("memory") ||
-    // ORT surfaces allocation failures from OrtRun with error code 6.
     s.includes("ortrun")
   );
 }
 
-async function getUpscaler(onProgress?: (p: UpscaleProgress) => void): Promise<any> {
-  if (pipePromise) return pipePromise;
+async function getUpscaler(
+  mode: UpscaleMode,
+  onProgress?: (p: UpscaleProgress) => void,
+): Promise<any> {
+  const cached = pipePromises[mode];
+  if (cached) return cached;
 
-  pipePromise = (async () => {
+  const promise = (async () => {
     const tf: any = await import("@huggingface/transformers");
     const { pipeline, env } = tf;
 
@@ -141,18 +160,18 @@ async function getUpscaler(onProgress?: (p: UpscaleProgress) => void): Promise<a
       }
     };
 
-    // WASM + fp32: maximum compatibility across browsers (matches bg remover).
-    return await pipeline("image-to-image", MODEL_ID, {
+    return await pipeline("image-to-image", MODELS[mode].id, {
       device: "wasm",
       dtype: "fp32",
       progress_callback,
     });
   })();
 
+  pipePromises[mode] = promise;
   try {
-    return await pipePromise;
+    return await promise;
   } catch (e) {
-    pipePromise = null;
+    delete pipePromises[mode];
     throw new Error(`Couldn't load the AI model — ${describe(e)}`);
   }
 }
@@ -164,7 +183,6 @@ interface DecodedImage {
   height: number;
 }
 
-/** Decode the file into an <img> we can re-sample at different sizes. */
 async function decodeImage(file: File): Promise<DecodedImage> {
   const srcUrl = URL.createObjectURL(file);
   let img: HTMLImageElement;
@@ -195,7 +213,6 @@ interface ScaledInput {
   scaled: boolean;
 }
 
-/** Produce a blob URL of the image resized so its longest edge ≤ targetEdge. */
 async function scaleTo(dec: DecodedImage, targetEdge: number): Promise<ScaledInput> {
   const longest = Math.max(dec.width, dec.height);
   const ratio = Math.min(1, targetEdge / longest);
@@ -222,7 +239,6 @@ async function scaleTo(dec: DecodedImage, targetEdge: number): Promise<ScaledInp
   return { blobUrl: URL.createObjectURL(blob), width: tw, height: th, scaled };
 }
 
-/** Convert a transformers.js RawImage (RGB or RGBA) to a PNG blob via canvas. */
 async function rawImageToPngBlob(img: any): Promise<Blob> {
   const width: number = img.width;
   const height: number = img.height;
@@ -266,28 +282,35 @@ async function rawImageToPngBlob(img: any): Promise<Blob> {
   return blob;
 }
 
+export interface UpscaleOptions {
+  mode?: UpscaleMode;
+  onProgress?: (p: UpscaleProgress) => void;
+}
+
 /**
  * Upscale / restore an image 4x, fully on-device. Returns a PNG.
  *
  * Tries progressively smaller input sizes if the device runs out of memory, so
- * it degrades gracefully instead of crashing. Throws a friendly Error only if
- * even the smallest size fails.
+ * it degrades gracefully instead of crashing.
  */
 export async function upscaleImage(
   file: File,
-  onProgress?: (p: UpscaleProgress) => void,
+  opts: UpscaleOptions = {},
 ): Promise<UpscaleResult> {
+  const mode: UpscaleMode = opts.mode ?? "photo";
+  const onProgress = opts.onProgress;
+
   if (file.size > MAX_FILE_BYTES) {
     throw new Error(
       `That image is ${(file.size / (1024 * 1024)).toFixed(1)} MB — please use one under 30 MB.`,
     );
   }
 
-  const upscaler = await getUpscaler(onProgress);
+  const upscaler = await getUpscaler(mode, onProgress);
 
   onProgress?.({ stage: "prepare", label: "Preparing your image…" });
   const dec = await decodeImage(file);
-  const edges = candidateEdges(Math.max(dec.width, dec.height));
+  const edges = candidateEdges(mode, Math.max(dec.width, dec.height));
 
   let lastErr: any = null;
   try {
@@ -329,9 +352,7 @@ export async function upscaleImage(
       } catch (err) {
         if (scaledInput) URL.revokeObjectURL(scaledInput.blobUrl);
         lastErr = err;
-        console.warn(`[ZeroUpload] upscale attempt at ${edge}px failed:`, err);
-        // Memory error → keep stepping down. Other errors on the very first
-        // attempt are likely fatal (bad model/output), so stop early.
+        console.warn(`[ZeroUpload] upscale attempt at ${edge}px (${mode}) failed:`, err);
         if (!isMemoryError(err) && i === 0) break;
       }
     }
@@ -345,9 +366,7 @@ export async function upscaleImage(
         "Try a smaller image, close other tabs, or use a desktop browser.",
     );
   }
-  throw new Error(
-    `Enhancing failed — ${describe(lastErr)}. Please try another image.`,
-  );
+  throw new Error(`Enhancing failed — ${describe(lastErr)}. Please try another image.`);
 }
 
 /** Whether this browser can run the on-device model at all. */
