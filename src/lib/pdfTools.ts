@@ -157,3 +157,23 @@ export async function extractText(
   const text = parts.join("\n\n").trim();
   return { text, pages, empty: text.length === 0 };
 }
+
+
+/** Rotate every page of a PDF by 90/180/270 degrees (clockwise). Lossless. */
+export async function rotatePdf(
+  file: File,
+  turn: 90 | 180 | 270,
+): Promise<PdfToolResult> {
+  const { PDFDocument, degrees } = await import("pdf-lib");
+  const doc = await PDFDocument.load(await file.arrayBuffer());
+  for (const page of doc.getPages()) {
+    const current = page.getRotation().angle;
+    page.setRotation(degrees((current + turn) % 360));
+  }
+  const bytes = await doc.save();
+  return {
+    blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
+    filename: `${baseName(file.name)}-rotated.pdf`,
+    pages: doc.getPageCount(),
+  };
+}

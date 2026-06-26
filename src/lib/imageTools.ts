@@ -303,3 +303,65 @@ export async function transformImage(
     ms: Math.max(1, Math.round(performance.now() - start)),
   };
 }
+
+
+export interface CropRect {
+  /** crop origin + size in SOURCE pixels */
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Crop an image to a rectangle (in source pixels). Lossless pixel copy
+ * (re-encoded to the chosen format). No upscaling.
+ */
+export async function cropImage(
+  file: File,
+  rect: CropRect,
+  opts: { format: CompressFormat; quality: number },
+): Promise<ImageToolResult> {
+  const start = performance.now();
+  const { mime, ext } = resolveOutput(file, opts.format);
+
+  const bitmap = await loadBitmap(file);
+  const { width: ow, height: oh } = dimensionsOf(bitmap);
+
+  const sx = Math.max(0, Math.min(Math.round(rect.x), ow - 1));
+  const sy = Math.max(0, Math.min(Math.round(rect.y), oh - 1));
+  const sw = Math.max(1, Math.min(Math.round(rect.width), ow - sx));
+  const sh = Math.max(1, Math.min(Math.round(rect.height), oh - sy));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = sw;
+  canvas.height = sh;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Your browser could not create a drawing canvas.");
+
+  if (mime === "image/jpeg") {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, sw, sh);
+  }
+  ctx.drawImage(bitmap as CanvasImageSource, sx, sy, sw, sh, 0, 0, sw, sh);
+  if ("close" in bitmap && typeof bitmap.close === "function") bitmap.close();
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Could not encode the image."))),
+      mime,
+      opts.quality,
+    );
+  });
+  canvas.width = 0;
+  canvas.height = 0;
+
+  const base = file.name.replace(/\.[^.]+$/, "") || "image";
+  return {
+    blob,
+    filename: `${base}-cropped.${ext}`,
+    width: sw,
+    height: sh,
+    ms: Math.max(1, Math.round(performance.now() - start)),
+  };
+}
