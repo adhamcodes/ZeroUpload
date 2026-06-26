@@ -76,7 +76,7 @@ export default function ImageUpscaler() {
         patch(next.id, { status: "working" });
         try {
           const res = await upscaleImage(next.file, (p) => {
-            if (p.stage === "download" || p.stage === "warm") setPhase(p);
+            if (p.stage === "download" || p.stage === "warm" || p.stage === "retry") setPhase(p);
             else setPhase(null);
           });
           setModelReady(true);
