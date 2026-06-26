@@ -509,6 +509,41 @@ export default function Converter({
     [targetIsBig, selectedTo],
   );
 
+  /* ---- swap direction: reverse the conversion (To becomes From, etc.) ---- */
+  // Resolve a concrete "from": the manual/detected source (AUTO before any file).
+  const resolvedFrom = selectedFrom !== AUTO ? selectedFrom : items[0]?.fromId ?? null;
+  const swapFrom = selectedTo; // new source = current target
+  const swapTo = resolvedFrom; // new target = current source
+  const canSwap =
+    !lockedFrom &&
+    !!swapTo &&
+    swapFrom !== swapTo &&
+    sources.some((s) => s.id === swapFrom) &&
+    targets.some((t) => t.id === swapTo) &&
+    !!engineMap[`${swapFrom}-${swapTo}`];
+  const swapTitle = !resolvedFrom
+    ? "Drop a file or pick a source format first to swap direction"
+    : !canSwap
+      ? "This conversion can't be reversed"
+      : `Swap direction — ${swapFrom.toUpperCase()} to ${(swapTo ?? "").toUpperCase()}`;
+
+  const doSwap = () => {
+    if (!canSwap || !swapTo) return;
+    // Direction reversed, so existing files no longer match the new source: clear them.
+    runTokenRef.current++;
+    itemsRef.current.forEach((it) => {
+      if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
+      it.outputs.forEach((o) => URL.revokeObjectURL(o.url));
+    });
+    setItems([]);
+    setError("");
+    setInfo("");
+    if (inputRef.current) inputRef.current.value = "";
+    manualFromRef.current = true;
+    setSelectedFrom(swapFrom);
+    setSelectedTo(swapTo);
+  };
+
   /* ---- collapsed cover (homepage only, before first interaction) ---- */
   if (collapsible && !revealed) {
     return (
@@ -614,7 +649,7 @@ export default function Converter({
                 onChange={changeFrom}
                 className="w-40"
               />
-              <ArrowRight />
+              <SwapButton onClick={doSwap} disabled={!canSwap} title={swapTitle} />
             </>
           )}
           <Dropdown
@@ -789,6 +824,49 @@ function ArrowRight() {
         <path d="m12 5 7 7-7 7" />
       </svg>
     </div>
+  );
+}
+
+function SwapButton({
+  onClick,
+  disabled,
+  title,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  title: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label="Swap conversion direction"
+      title={title}
+      className={[
+        "mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors",
+        disabled
+          ? "cursor-not-allowed border-mist text-faint"
+          : "border-mist text-stone hover:border-accent hover:text-accent",
+      ].join(" ")}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m8 3-4 4 4 4" />
+        <path d="M4 7h16" />
+        <path d="m16 21 4-4-4-4" />
+        <path d="M20 17H4" />
+      </svg>
+    </button>
   );
 }
 
