@@ -25,7 +25,8 @@
     "pdfjs-dist": "^6.0.227",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwindcss": "^4.0.0"
+    "tailwindcss": "^4.0.0",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@ffmpeg/core": "^0.12.10",

@@ -10,77 +10,78 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="mt-24 border-t border-mist/70">
-  <div class="mx-auto max-w-5xl px-6 py-12">
-    <div class="flex flex-col gap-8 sm:flex-row sm:justify-between">
-      <div class="max-w-xs">
-        <p class="font-display text-lg">ZeroUpload</p>
-        <p class="mt-2 text-sm text-stone">
-          Convert files 100% in your browser. Zero uploads. Zero limits. Zero
-          servers. Your files never leave your device.
-        </p>
+  <div class="mx-auto max-w-6xl px-6 py-12">
+    <div class="max-w-sm">
+      <p class="font-display text-lg">ZeroUpload</p>
+      <p class="mt-2 text-sm text-stone">
+        Convert files 100% in your browser. Zero uploads. Zero limits. Zero
+        servers. Your files never leave your device.
+      </p>
+    </div>
+
+    <div class="mt-10 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wider text-stone">Image</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a class="text-stone transition-colors hover:text-ink" href="/image-converter">Image Converter</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/image-upscaler">AI Image Upscaler</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/background-remover">Background Remover</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/compress-image">Compress Image</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/resize-image">Resize Image</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/rotate-image">Rotate Image</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/crop-image">Crop Image</a></li>
+        </ul>
       </div>
 
-      <div class="flex gap-12">
-        <div>
-          <p class="text-xs font-medium uppercase tracking-wider text-stone">
-            Converters
-          </p>
-          <ul class="mt-3 space-y-2 text-sm">
-            <li><a class="text-stone transition-colors hover:text-ink" href="/image-converter">Image Converter</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/pdf">PDF Converter</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/audio-converter">Audio Converter</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/trim-audio">Trim Audio</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/merge-audio">Merge Audio</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/compress-audio">Compress Audio</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/text">Text (OCR)</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/image-upscaler">AI Image Upscaler</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/background-remover">Background Remover</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/compress-image">Compress Image</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/resize-image">Resize Image</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/rotate-image">Rotate Image</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/crop-image">Crop Image</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/merge-pdf">Merge PDF</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/split-pdf">Split PDF</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/rotate-pdf">Rotate PDF</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/compress-pdf">Compress PDF</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/organize-pdf">Organize PDF</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/pdf-to-text">PDF to Text</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/tools">All Tools</a></li>
-          </ul>
-        </div>
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wider text-stone">PDF</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a class="text-stone transition-colors hover:text-ink" href="/pdf">PDF Converter</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/merge-pdf">Merge PDF</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/split-pdf">Split PDF</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/rotate-pdf">Rotate PDF</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/compress-pdf">Compress PDF</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/organize-pdf">Organize PDF</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/pdf-to-text">PDF to Text</a></li>
+        </ul>
+      </div>
 
-        <div>
-          <p class="text-xs font-medium uppercase tracking-wider text-stone">
-            Popular
-          </p>
-          <ul class="mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-            {
-              popular.map((c) => (
-                <li>
-                  <a
-                    class="text-stone transition-colors hover:text-ink"
-                    href={`/${c.slug}`}
-                  >
-                    {c.from.name} to {c.to.name}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wider text-stone">Audio &amp; Text</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a class="text-stone transition-colors hover:text-ink" href="/audio-converter">Audio Converter</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/trim-audio">Trim Audio</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/merge-audio">Merge Audio</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/compress-audio">Compress Audio</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/text">Image to Text (OCR)</a></li>
+        </ul>
+      </div>
 
-        <div>
-          <p class="text-xs font-medium uppercase tracking-wider text-stone">
-            Company
-          </p>
-          <ul class="mt-3 space-y-2 text-sm">
-            <li><a class="text-stone transition-colors hover:text-ink" href="/about">About</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/install">Install app</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/articles">Articles</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/privacy">Privacy Policy</a></li>
-            <li><a class="text-stone transition-colors hover:text-ink" href="/terms">Terms of Service</a></li>
-          </ul>
-        </div>
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wider text-stone">Popular</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          {
+            popular.map((c) => (
+              <li>
+                <a class="text-stone transition-colors hover:text-ink" href={`/${c.slug}`}>
+                  {c.from.name} to {c.to.name}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wider text-stone">Company</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a class="text-stone transition-colors hover:text-ink" href="/tools">All Tools</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/about">About</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/install">Install app</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/articles">Articles</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/privacy">Privacy Policy</a></li>
+          <li><a class="text-stone transition-colors hover:text-ink" href="/terms">Terms of Service</a></li>
+        </ul>
       </div>
     </div>
 
