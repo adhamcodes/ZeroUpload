@@ -72,7 +72,7 @@ function resolveOutput(
   format: CompressFormat,
 ): { mime: string; ext: string } {
   if (format !== "auto") {
-    return { mime: MIME[format], ext: format === "jpeg" ? "jpg" : format };
+    return { mime: MIME[format], ext: format };
   }
   // Auto: keep a sensible type based on the source.
   const t = file.type;

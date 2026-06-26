@@ -125,7 +125,7 @@ export async function convertAudio(
   await ff.deleteFile(output).catch(() => {});
 
   const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
-  const blob = new Blob([bytes], {
+  const blob = new Blob([bytes as BlobPart], {
     type: MIME[target] ?? "application/octet-stream",
   });
   const base = file.name.replace(/\.[^.]+$/, "") || "audio";

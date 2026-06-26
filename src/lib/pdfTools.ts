@@ -43,7 +43,7 @@ export async function mergePdfs(files: File[]): Promise<PdfToolResult> {
 
   const bytes = await out.save();
   return {
-    blob: new Blob([bytes], { type: "application/pdf" }),
+    blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
     filename: "merged.pdf",
     pages: out.getPageCount(),
   };
@@ -71,7 +71,7 @@ export async function extractRange(
 
   const bytes = await out.save();
   return {
-    blob: new Blob([bytes], { type: "application/pdf" }),
+    blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
     filename: `${baseName(file.name)}-p${start}-${end}.pdf`,
     pages: out.getPageCount(),
   };
@@ -91,7 +91,7 @@ export async function splitToPages(file: File): Promise<PdfToolResult[]> {
     doc.addPage(page);
     const bytes = await doc.save();
     results.push({
-      blob: new Blob([bytes], { type: "application/pdf" }),
+      blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
       filename: `${base}-page-${i + 1}.pdf`,
       pages: 1,
     });
