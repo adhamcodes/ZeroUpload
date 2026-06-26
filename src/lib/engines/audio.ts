@@ -135,3 +135,190 @@ export async function convertAudio(
     ms: Math.max(1, Math.round(performance.now() - start)),
   };
 }
+
+
+
+/* ------------------------------------------------------------------ *
+ * Audio editing tools (trim / merge / compress) — same ffmpeg.wasm
+ * instance, same on-device promise. Self-contained additions; they do
+ * not modify convertAudio above.
+ * ------------------------------------------------------------------ */
+
+export interface AudioToolResult {
+  blob: Blob;
+  filename: string;
+  ms: number;
+}
+
+type AudioProgress = (ratio: number, label: string) => void;
+
+function audioExt(file: File): string {
+  return (file.name.split(".").pop() || "dat").toLowerCase();
+}
+
+function audioBase(name: string): string {
+  return name.replace(/\.[^.]+$/, "") || "audio";
+}
+
+/** Read metadata duration (seconds) with a plain <audio> element — no ffmpeg. */
+export async function getAudioDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const el = document.createElement("audio");
+    el.preload = "metadata";
+    el.onloadedmetadata = () => {
+      const d = el.duration;
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(d) ? d : 0);
+    };
+    el.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Couldn't read this audio file's length."));
+    };
+    el.src = url;
+  });
+}
+
+/** Shared output reader with friendly error + cleanup. */
+async function finishExec(
+  ff: FFmpeg,
+  output: string,
+  cleanup: string[],
+  code: number,
+  what: string,
+): Promise<Uint8Array> {
+  let data: Uint8Array | string;
+  try {
+    data = await ff.readFile(output);
+  } catch {
+    const tail = recentLog.slice(-6).join(" | ");
+    for (const f of cleanup) await ff.deleteFile(f).catch(() => {});
+    throw new Error(`${what} failed (ffmpeg exit ${code}). ${tail || "No output produced."}`);
+  }
+  for (const f of cleanup) await ff.deleteFile(f).catch(() => {});
+  await ff.deleteFile(output).catch(() => {});
+  return typeof data === "string" ? new TextEncoder().encode(data) : data;
+}
+
+/**
+ * Trim/cut a section out of an audio file. Lossless — copies the stream
+ * without re-encoding, so quality is identical and it's fast. Keeps the
+ * original format.
+ */
+export async function trimAudio(
+  file: File,
+  startSec: number,
+  endSec: number,
+  onProgress?: AudioProgress,
+): Promise<AudioToolResult> {
+  const start = performance.now();
+  const ff = await getFFmpeg(onProgress);
+  const stamp = Date.now();
+  const ext = audioExt(file);
+  const input = `trim_in_${stamp}.${ext}`;
+  const output = `trim_out_${stamp}.${ext}`;
+
+  const from = Math.max(0, startSec);
+  const dur = Math.max(0.05, endSec - from);
+
+  await ff.writeFile(input, await fetchFile(file));
+  recentLog.length = 0;
+  onProgress?.(-1, "Trimming…");
+  // -ss before -i = fast seek; -c copy = lossless stream copy.
+  const code = await ff.exec([
+    "-ss", String(from),
+    "-i", input,
+    "-t", String(dur),
+    "-c", "copy",
+    output,
+  ]);
+
+  const bytes = await finishExec(ff, output, [input], code, "Trim");
+  const blob = new Blob([bytes as BlobPart], {
+    type: MIME[ext] ?? "application/octet-stream",
+  });
+  return {
+    blob,
+    filename: `${audioBase(file.name)}-trimmed.${ext}`,
+    ms: Math.max(1, Math.round(performance.now() - start)),
+  };
+}
+
+/**
+ * Merge several audio files into one, in order. Uses the concat filter so it
+ * works even when the inputs have different codecs/sample rates — which means
+ * the result is re-encoded to the chosen format (lossy for mp3/aac).
+ */
+export async function mergeAudio(
+  files: File[],
+  target: string,
+  onProgress?: AudioProgress,
+): Promise<AudioToolResult> {
+  if (files.length < 2) throw new Error("Add at least two audio files to merge.");
+  const start = performance.now();
+  const ff = await getFFmpeg(onProgress);
+  const stamp = Date.now();
+
+  const inputs: string[] = [];
+  const args: string[] = [];
+  for (let i = 0; i < files.length; i++) {
+    const name = `merge_${stamp}_${i}.${audioExt(files[i])}`;
+    await ff.writeFile(name, await fetchFile(files[i]));
+    inputs.push(name);
+    args.push("-i", name);
+  }
+
+  const filter =
+    files.map((_, i) => `[${i}:a]`).join("") +
+    `concat=n=${files.length}:v=0:a=1[out]`;
+  const output = `merged_${stamp}.${target}`;
+  args.push("-filter_complex", filter, "-map", "[out]", output);
+
+  recentLog.length = 0;
+  onProgress?.(-1, "Merging…");
+  const code = await ff.exec(args);
+
+  const bytes = await finishExec(ff, output, inputs, code, "Merge");
+  const blob = new Blob([bytes as BlobPart], {
+    type: MIME[target] ?? "application/octet-stream",
+  });
+  return {
+    blob,
+    filename: `merged-audio.${target}`,
+    ms: Math.max(1, Math.round(performance.now() - start)),
+  };
+}
+
+/**
+ * Compress audio by re-encoding to MP3 at a target bitrate. This is lossy —
+ * smaller file, slightly lower fidelity — so the UI says so plainly.
+ */
+export async function compressAudio(
+  file: File,
+  bitrateKbps: number,
+  onProgress?: AudioProgress,
+): Promise<AudioToolResult> {
+  const start = performance.now();
+  const ff = await getFFmpeg(onProgress);
+  const stamp = Date.now();
+  const input = `comp_in_${stamp}.${audioExt(file)}`;
+  const output = `comp_out_${stamp}.mp3`;
+
+  await ff.writeFile(input, await fetchFile(file));
+  recentLog.length = 0;
+  onProgress?.(-1, "Compressing…");
+  const code = await ff.exec([
+    "-i", input,
+    "-b:a", `${bitrateKbps}k`,
+    "-map_metadata", "-1",
+    output,
+  ]);
+
+  const bytes = await finishExec(ff, output, [input], code, "Compression");
+  const blob = new Blob([bytes as BlobPart], { type: MIME.mp3 });
+  return {
+    blob,
+    filename: `${audioBase(file.name)}-compressed.mp3`,
+    ms: Math.max(1, Math.round(performance.now() - start)),
+  };
+}
