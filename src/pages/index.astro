@@ -7,7 +7,7 @@ import { CONVERSIONS, FORMAT_BY_ID } from "../data/conversions";
 const title =
   "ZeroUpload — Convert Files 100% in Your Browser. Zero Uploads, Zero Limits.";
 const description =
-  "Convert images, PDFs and audio privately and instantly. Files never leave your device — no upload, no signup, no limits. Works even offline. The private file converter.";
+  "Convert images, PDFs and audio privately and instantly. Files never leave your device — no upload, no signup, no limits. Everything runs right in your browser. The private file converter.";
 
 // ---- Universal converter wiring: every conversion in one floating console ----
 const sourceIds = Array.from(new Set(CONVERSIONS.map((c) => c.from.id)));
@@ -53,7 +53,7 @@ const trust = [
   { t: "Nothing uploaded", icon: "lock" },
   { t: "No signup, ever", icon: "user" },
   { t: "Unlimited & free", icon: "infinity" },
-  { t: "Works offline", icon: "wifi" },
+  { t: "Runs on your device", icon: "wifi" },
   { t: "Any browser", icon: "globe" },
 ];
 
@@ -82,7 +82,7 @@ function toolIcon(kind: string): string[] {
 const faqs = [
   { q: "Is ZeroUpload really free and unlimited?", a: "Yes. No signup, no watermark, no per-file limit. There is no server doing the work, so there is nothing to meter or charge for." },
   { q: "Are my files uploaded anywhere?", a: "No. Every conversion runs inside your browser using WebAssembly and Canvas. Your files never leave your device." },
-  { q: "Does it work offline?", a: "Yes — once the page has loaded you can disconnect from the internet and it still converts. That's the proof nothing is being uploaded." },
+  { q: "Do I need internet? Is this an offline app?", a: "It's a website, so you need internet to open the page (and the AI tools download a one-time engine). But it is not sending your files anywhere — the converting happens right inside your browser, on your device. In fact, once a page has loaded you can switch off your Wi-Fi mid-conversion and it still finishes. That's our proof that nothing is uploaded — not a way to use it without internet." },
   { q: "What can I convert?", a: "Images (PNG, JPG, WEBP, HEIC, SVG, GIF, BMP), PDF ↔ images, and audio (MP3, WAV, OGG, M4A, FLAC, AAC) — with more tools being added." },
 ];
 
@@ -117,8 +117,8 @@ const jsonLd = [
       class="float-in mx-auto mt-5 max-w-xl text-lg text-stone"
       style="animation-delay: 120ms"
     >
-      Drop a file below — it's converted entirely inside your browser. No upload,
-      no signup, no limits, even works offline.
+      Drop a file below — it's converted entirely inside your browser, on your
+      device. No upload, no signup, no limits.
     </p>
   </section>
 
@@ -255,7 +255,7 @@ const jsonLd = [
         [
           { t: "Nothing is uploaded", d: "Conversion runs in your browser with WebAssembly and Canvas. Your files stay on your device — always." },
           { t: "Instant & unlimited", d: "No queues, no '2 free conversions' walls. There is no server doing the work, so there is nothing to limit." },
-          { t: "Works offline", d: "Once the page loads you can disconnect the internet and it still converts. That's the proof it's private." },
+          { t: "Runs on your device", d: "The converting happens in your browser, not on a server. Start a conversion, switch off your Wi-Fi, and it still finishes — proof your file never leaves your device. (You only need internet to open the page.)" },
         ].map((f) => (
           <div>
             <div class="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent">

@@ -303,7 +303,7 @@ export function pageTitle(c: Conversion): string {
 }
 
 export function metaDescription(c: Conversion): string {
-  return `Convert ${c.from.name} to ${c.to.name} online for free. Files never leave your device — 100% private, no upload, no signup, no limits. Works even offline.`;
+  return `Convert ${c.from.name} to ${c.to.name} online for free. Files never leave your device — 100% private, no upload, no signup, no limits.`;
 }
 
 export function h1(c: Conversion): string {
@@ -343,8 +343,8 @@ export function faq(c: Conversion): { q: string; a: string }[] {
       a: `${c.from.name} is ${c.from.blurb}. ${c.to.name} is ${c.to.blurb}. Converting from ${c.from.name} to ${c.to.name} trades ${c.from.pros[0]?.toLowerCase()} for ${c.to.pros[0]?.toLowerCase()}.`,
     },
     {
-      q: `Will it work offline?`,
-      a: `Yes. Once the page (and engine) has loaded, the ${c.from.name} to ${c.to.name} conversion works even with your internet disconnected, because everything happens locally.`,
+      q: `Do my files get uploaded?`,
+      a: `No. The ${c.from.name} to ${c.to.name} conversion runs entirely inside your browser, on your device, so your files are never sent to a server. You need internet to load the page, but the conversion itself is local — you can even disconnect mid-convert and it still finishes.`,
     },
   ];
 }
