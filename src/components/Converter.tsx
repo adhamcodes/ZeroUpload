@@ -113,7 +113,7 @@ function detectDevice(big: boolean): DeviceProfile {
     isMobile,
     lowMemory: false,
     maxFiles: big ? 10 : 50,
-    maxFileBytes: (big ? 500 : 100) * 1024 * 1024,
+    maxFileBytes: (big ? 300 : 100) * 1024 * 1024,
     maxBatchBytes: 800 * 1024 * 1024,
   };
 }
@@ -598,7 +598,7 @@ export default function Converter({
           Convert a file
         </p>
         <p className="mt-1.5 text-stone">
-          Click to start — or drop a file right here
+          Tap to choose a file — or drop it here
         </p>
         <p className="mt-4 flex items-center justify-center gap-2 text-xs text-stone">
           <svg
@@ -727,12 +727,12 @@ export default function Converter({
             ].join(" ")}
           >
             {hasItems
-              ? "Drop more files"
-              : `Drop your ${lockedFromName ?? "file"}${lockedFrom ? "" : "s"} here`}
+              ? "Add more files"
+              : `Add your ${lockedFromName ?? "file"}${lockedFrom ? "" : "s"}`}
           </p>
           {!hasItems && (
             <p className="mt-1 text-sm text-stone">
-              or click to choose — converted to {targetName} on your device
+              Tap to choose — or drop {lockedFrom ? "it" : "them"} here. Converted to {targetName} on your device.
             </p>
           )}
           {!hasItems && device.lowMemory && (

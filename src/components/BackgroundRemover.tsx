@@ -272,8 +272,8 @@ export default function BackgroundRemover() {
 
       {!modelReady && (
         <p className="mt-2 text-center text-xs text-faint">
-          First use downloads a one-time AI model (~25&nbsp;MB), then it's cached
-          and stays fast — your photo never leaves your device.
+          First use sets up the secure on-device AI engine (a one-time ~25&nbsp;MB
+          download) — then it's instant, and your photo never leaves your device.
         </p>
       )}
 

@@ -75,7 +75,7 @@ async function getSegmenter(onProgress?: (p: BgProgress) => void): Promise<any> 
       if (data?.status === "progress" && typeof data.progress === "number") {
         onProgress({
           stage: "download",
-          label: `Downloading the AI model (one time only)… ${Math.round(data.progress)}%`,
+          label: `Downloading the secure on-device AI engine (one time only)… ${Math.round(data.progress)}%`,
           pct: data.progress,
         });
       } else if (data?.status === "ready" || data?.status === "done") {
