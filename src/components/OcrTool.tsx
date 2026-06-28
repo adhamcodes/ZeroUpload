@@ -135,7 +135,7 @@ export default function OcrTool() {
           <svg className="animate-wifi-pulse" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /></svg>
           Nothing is uploaded. Your image never leaves this browser.
         </p>
-        {!modelReady && <p className="mt-2 text-center text-xs text-faint">First use downloads a one-time OCR engine, then it's cached.</p>}
+        {!modelReady && <p className="mt-2 text-center text-xs text-faint">First use sets up the secure on-device OCR engine (a one-time download) — then it's instant, and your image never leaves your device.</p>}
         {error && <div className="mt-4 rounded-[var(--radius-md)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>}
       </div>
     );

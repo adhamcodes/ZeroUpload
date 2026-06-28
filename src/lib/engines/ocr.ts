@@ -34,7 +34,7 @@ let activeProgress: ((p: OcrProgress) => void) | null = null;
 
 function humanizeStatus(status: string): string {
   const map: Record<string, string> = {
-    "loading tesseract core": "Loading the OCR engine…",
+    "loading tesseract core": "Setting up the secure on-device OCR engine…",
     "initializing tesseract": "Starting the OCR engine…",
     "loading language traineddata": "Loading the language model…",
     "initializing api": "Getting ready…",
