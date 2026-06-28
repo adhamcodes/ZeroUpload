@@ -45,8 +45,9 @@ store, or promise to delete later.
 - **No limits.** A server costs money for every file it processes, which is why
   those sites cap you and then ask for your card. Our cost per conversion is zero,
   so there's nothing to ration.
-- **It works offline,** which is the part I find genuinely satisfying. Disconnect
-  and it keeps going.
+- **It keeps running even if your connection drops mid-convert** — which is the
+  part I find genuinely satisfying, and the clearest proof it's all local. (You
+  need internet to load the page; the actual work happens on your device.)
 
 ## The one trade-off I'll be straight about
 
