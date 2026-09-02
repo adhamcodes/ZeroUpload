@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 const title = "Terms of Service | ZeroUpload";
 const description =
   "The terms of service for using ZeroUpload, the free in-browser file converter.";
-const updated = "June 2026";
+const updated = "September 2026";
 ---
 
 <Layout title={title} description={description}>
@@ -21,7 +21,7 @@ const updated = "June 2026";
 
       <h2 class="font-display text-2xl text-ink">2. The Service</h2>
       <p>
-        ZeroUpload provides free, browser-based file conversion tools. All
+        ZeroUpload provides free, browser-based file conversion tools. Supported
         conversions are performed locally on your own device. The Service is
         provided free of charge for personal and commercial use.
       </p>
@@ -39,9 +39,9 @@ const updated = "June 2026";
         THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF
         ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
         WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
-        NON-INFRINGEMENT. While we work hard to provide accurate, reliable
-        conversions, we do not warrant that every conversion will be error-free,
-        lossless, or suitable for your particular purpose.
+        NON-INFRINGEMENT. While we work to provide accurate, reliable conversions,
+        we do not warrant that every conversion will be error-free, lossless, or
+        suitable for your particular purpose.
         <strong>Always keep a copy of your original files.</strong>
       </p>
 
@@ -50,9 +50,9 @@ const updated = "June 2026";
         TO THE MAXIMUM EXTENT PERMITTED BY LAW, ZEROUPLOAD AND ITS OPERATORS SHALL
         NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR
         PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM
-        YOUR USE OF (OR INABILITY TO USE) THE SERVICE. Because your files are
-        processed only on your own device and are never uploaded to us, we never
-        hold or control them.
+        YOUR USE OF (OR INABILITY TO USE) THE SERVICE. Files selected for supported
+        conversions are processed on your device rather than uploaded to a
+        ZeroUpload file-processing backend.
       </p>
 
       <h2 class="font-display text-2xl text-ink">6. Intellectual property</h2>
@@ -70,19 +70,23 @@ const updated = "June 2026";
 
       <h2 class="font-display text-2xl text-ink">8. Governing law</h2>
       <p>
-        These Terms are governed by the laws of Dhaka, Bangladesh, without regard
-        to its conflict-of-law provisions.
+        These Terms are governed by the applicable laws of Bangladesh, without
+        regard to conflict-of-law principles.
       </p>
 
       <h2 class="font-display text-2xl text-ink">9. Contact</h2>
       <p>
-        Questions about these Terms? Email <strong>support@zeroupload.app</strong>.
+        For questions about these Terms, <a href="https://github.com/adhamcodes/ZeroUpload/issues">open an issue on the project's GitHub repository</a>.
       </p>
     </div>
   </article>
 </Layout>
 
 <style>
+  .article-body :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
   .article-body :global(strong) {
     color: var(--color-ink);
     font-weight: 600;

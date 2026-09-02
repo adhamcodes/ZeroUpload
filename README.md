@@ -48,4 +48,4 @@ happening on your device.
 
 ZeroUpload is an independent, privacy-first project built by **Adham**.
 
-Questions or ideas? **support@zeroupload.app**
+Found a bug or have an idea? [Open an issue](https://github.com/adhamcodes/ZeroUpload/issues).

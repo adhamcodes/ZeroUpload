@@ -4,9 +4,8 @@ import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
-// The public site URL. Update this to the real domain once it is live.
-// Used by Astro for canonical URLs and by @astrojs/sitemap.
-const SITE_URL = "https://zeroupload.app";
+// Current public deployment. Replace this only if ZeroUpload gets a domain you own.
+const SITE_URL = "https://zeroupload-8e8.pages.dev";
 
 // https://astro.build/config
 export default defineConfig({

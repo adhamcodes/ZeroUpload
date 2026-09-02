@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 const title = "Privacy Policy | ZeroUpload";
 const description =
   "ZeroUpload's privacy policy. Your files are converted entirely in your browser and are never uploaded, stored, or seen by us.";
-const updated = "June 2026";
+const updated = "September 2026";
 ---
 
 <Layout title={title} description={description}>
@@ -24,21 +24,21 @@ const updated = "June 2026";
       <p>
         <strong>We never receive your files.</strong> Every conversion happens
         locally, inside your web browser, on your own device. ZeroUpload does not
-        operate servers that receive, process, or store the files you convert —
-        because the conversion does not require one.
+        operate a file-processing backend that receives, processes, or stores the
+        files you convert.
       </p>
 
       <h2 class="font-display text-2xl text-ink">2. Your files</h2>
       <ul class="list-disc space-y-1 pl-5">
         <li>When you convert a file, it is read into your browser's memory, converted on your device, and offered back to you as a download.</li>
-        <li>Your file is <strong>never uploaded</strong> to ZeroUpload or any third party.</li>
-        <li>We keep <strong>no copy</strong> of your files, ever. We could not retrieve one if asked — we never had it.</li>
+        <li>Your file is <strong>never uploaded</strong> to ZeroUpload for processing.</li>
+        <li>We keep <strong>no copy</strong> of your files. We could not retrieve one if asked because we never receive it.</li>
         <li>When you close or refresh the page, the file data is released from memory.</li>
       </ul>
       <p>
         You can verify this yourself: start a conversion and then disconnect your
         internet — it will still work — or open your browser's developer Network
-        tab and confirm there are no upload requests. (The AI-powered background
+        tab and confirm there are no file-upload requests. (The AI-powered background
         remover needs a one-time model download first; after that, it too does
         all its work on your device. See section 5.)
       </p>
@@ -49,7 +49,7 @@ const updated = "June 2026";
       </p>
       <ul class="list-disc space-y-1 pl-5">
         <li><strong>Privacy-respecting, aggregate analytics</strong> to understand anonymous usage (such as which pages are popular and general traffic counts). This never includes the contents of your files and is not used to identify you.</li>
-        <li><strong>Advertising:</strong> If the site displays ads, our advertising partners may use cookies or similar technologies as described in their own privacy policies. You can control cookies through your browser settings. Ads never receive your files.</li>
+        <li><strong>Advertising:</strong> If the site displays ads, advertising partners may use cookies or similar technologies as described in their own privacy policies. Ads do not receive your files.</li>
       </ul>
       <p>
         We do not require accounts, and we do not ask for or store personal
@@ -66,20 +66,19 @@ const updated = "June 2026";
 
       <h2 class="font-display text-2xl text-ink">5. Third-party services</h2>
       <p>
-        The site is hosted on a content delivery network (CDN) that serves the
-        static pages and conversion engine files. Like all web hosts, the CDN may
-        process standard technical request data (such as IP address and user
-        agent) to deliver the site and protect against abuse. This is standard web
-        infrastructure and does not involve your converted files.
+        The site is hosted on Cloudflare Pages, which serves the static pages and
+        application files. Like other web hosts, Cloudflare may process standard
+        technical request data (such as IP address and user agent) to deliver the
+        site and protect against abuse. This does not involve the files you convert.
       </p>
       <p>
         <strong>AI-powered tools.</strong> The background remover runs an AI
         model directly in your browser. The first time you use it, your browser
-        downloads the model file once from a third-party AI model host (Hugging
-        Face's CDN); after that it is cached on your device.
-        Downloading the model involves a normal web request to that host, but
-        <strong>your image is still never uploaded</strong> — only the model
-        comes down to your device, and all processing happens locally.
+        downloads the model file from a third-party AI model host (Hugging Face's
+        CDN); after that it may be cached on your device. Downloading the model
+        involves a normal web request to that host, but <strong>your image is not
+        uploaded there for processing</strong> — the model comes down to your device,
+        and the image processing happens locally.
       </p>
 
       <h2 class="font-display text-2xl text-ink">6. Children's privacy</h2>
@@ -91,9 +90,9 @@ const updated = "June 2026";
       <h2 class="font-display text-2xl text-ink">7. Your rights (GDPR / CCPA)</h2>
       <p>
         Because we do not collect or store your files or personal account data,
-        there is nothing of yours for us to export or delete. For any questions
-        about data the CDN or advertising partners may process, contact us and we
-        will help where we can.
+        there is no account or file archive for us to export or delete. For data
+        that hosting or advertising providers may process, their own privacy terms
+        apply.
       </p>
 
       <h2 class="font-display text-2xl text-ink">8. Changes to this policy</h2>
@@ -104,13 +103,17 @@ const updated = "June 2026";
 
       <h2 class="font-display text-2xl text-ink">9. Contact</h2>
       <p>
-        Questions about privacy? Email <strong>support@zeroupload.app</strong>.
+        For questions about this policy, <a href="https://github.com/adhamcodes/ZeroUpload/issues">open an issue on the project's GitHub repository</a>.
       </p>
     </div>
   </article>
 </Layout>
 
 <style>
+  .article-body :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
   .article-body :global(strong) {
     color: var(--color-ink);
     font-weight: 600;
