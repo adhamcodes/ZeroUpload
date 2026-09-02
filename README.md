@@ -7,7 +7,7 @@ servers to do the work. ZeroUpload doesn't. Every conversion — images, PDFs,
 audio — happens right inside your browser, on your own device. Your files never
 touch a server, because there isn't one.
 
-🔗 **Live:** https://zeroupload.app
+🔗 **Live:** https://zeroupload-8e8.pages.dev
 
 ---
 
