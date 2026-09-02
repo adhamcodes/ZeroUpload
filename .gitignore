@@ -21,6 +21,11 @@ pnpm-debug.log*
 .env
 .env.production
 
+# internal AI / owner workspace
+.agents/
+.kiro/
+FOUNDER-PLAYBOOK.md
+
 # macOS / editor cruft
 .DS_Store
 .vscode/
