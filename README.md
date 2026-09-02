@@ -1,11 +1,8 @@
 # ZeroUpload
 
-**Convert, compress, and edit your files — 100% in your browser. Nothing is ever uploaded.**
+**Convert, compress, and edit your files in the browser. Your files are not uploaded for processing.**
 
-Most "free online converters" quietly send your private files to a company's
-servers to do the work. ZeroUpload doesn't. Every conversion — images, PDFs,
-audio — happens right inside your browser, on your own device. Your files never
-touch a server, because there isn't one.
+Most online converters send your files to a server before they can do anything with them. ZeroUpload takes a different approach: supported conversions and edits run on your device, inside your browser. Cloudflare serves the website itself, but your selected files are not sent to a file-processing backend.
 
 🔗 **Live:** https://zeroupload-8e8.pages.dev
 
@@ -15,40 +12,40 @@ touch a server, because there isn't one.
 
 - **Images** — convert between PNG, JPG, WEBP, HEIC, GIF, BMP and SVG; compress,
   resize, rotate and flip.
-- **AI Background Remover** — erase a background in seconds, on your device.
+- **AI Background Remover** — erase a background on-device.
 - **PDF** — convert to/from images, merge, split, rotate, compress, reorder/delete
   pages, and extract text.
 - **Audio** — convert MP3, WAV, OGG, M4A, FLAC, AAC; trim, merge and compress.
-- **Image → Text (OCR)** — pull the text out of a screenshot or photo.
+- **Image → Text (OCR)** — pull text out of a screenshot or photo.
 
-All free. No signup. No limits. No watermark.
+No signup, watermark, or server-side usage quota.
 
 ## Why it's different
 
-- **Private by design.** Your files never leave your device — there's no upload
-  step and no server to store, read, or leak them.
-- **Free and unlimited.** No server doing the work means nothing to meter, so no
-  paywalls and no "2 free conversions" walls.
-- **Fast.** It runs on your own hardware — no uploading, no queue, no waiting.
-- **Works anywhere.** Any modern browser, on phone or desktop. Installable as an app.
+- **Private by design.** Your selected files stay on your device instead of being uploaded for processing.
+- **No account required.** Open a tool and use it without creating an account.
+- **Local processing.** The work runs on your own hardware, so there is no upload queue before processing starts.
+- **Works across modern browsers.** Use it on desktop or mobile, and install it as a PWA where supported.
 
 ## How it works
 
-ZeroUpload is a static site: the heavy lifting runs in your browser using
-WebAssembly and the Canvas API, so there's no backend and no database. You can
-prove it yourself — start a conversion, switch off your Wi-Fi, and it still
-finishes, because nothing is being sent anywhere.
+ZeroUpload is hosted as a static web app. The site code and assets are served by
+Cloudflare Pages, while supported file operations run locally using browser APIs,
+WebAssembly, and Canvas. There is no file-processing backend or database receiving
+your selected files.
+
+For a simple check, start a supported conversion after the page has loaded and
+turn off your connection. The conversion can still finish because the file work is
+happening on your device.
 
 ## Built with
 
 [Astro](https://astro.build), [React](https://react.dev) and
 [Tailwind CSS](https://tailwindcss.com), deployed on
-[Cloudflare Pages](https://pages.cloudflare.com). All file processing is
-client-side.
+[Cloudflare Pages](https://pages.cloudflare.com). File processing is client-side.
 
 ## About
 
-ZeroUpload is an independent, privacy-first project built by **Adham**. The whole
-idea is simple: your files are nobody's business but yours.
+ZeroUpload is an independent, privacy-first project built by **Adham**.
 
 Questions or ideas? **support@zeroupload.app**
