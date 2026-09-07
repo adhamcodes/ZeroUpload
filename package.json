@@ -8,6 +8,7 @@
     "dev": "astro dev",
     "prebuild": "node scripts/copy-ffmpeg.mjs",
     "build": "astro build",
+    "audit:sale": "node scripts/sale-readiness-check.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
